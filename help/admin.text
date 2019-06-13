@@ -1,0 +1,5 @@
+Admin-commands available:
+wetty - start/stop wetty session
+reloadconfig - reinitialize configuration
+diediedie - This kills the bot.
+showplugins
