@@ -1,5 +1,5 @@
 #!/bin/bash
-_script="addedtoplex.sh"
+_script="added.sh"
 source /drive/drive/.rtorrent/scripts/master.sh
 source /drive/drive/.rtorrent/scripts/.plexbot.conf
 payload() {

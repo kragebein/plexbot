@@ -46,6 +46,7 @@ check_request_flags(){
 	check_input(){
 		if [[ "$cmd" =~ ^[0-9]{1,3}(.*)$ ]]; then
 			imdbid="$(cat /tmp/.sbuf |grep -w "$cmd" |awk -F ' ' '{print $2}')";
+			lastadd
 		fi
 	}
 	missing_episode() {
@@ -269,7 +270,7 @@ check_request_flags(){
 				if [ ! "$who" = "$channel" ]; then	
 					say "$announce_channel :Serien \"$imdb_title\" ($imdbid) er blitt lagt til [lang:$core_lang]. Vil komme på plex fortløpende"
 				fi
-				say "$who :Serien \"$imdb_title\" ($imbid) er blitt lagt til [lang:$core_lang]. Vil legges til asap.";;
+				say "$who :Serien \"$imdb_title\" ($imdbid) er blitt lagt til [lang:$core_lang]. Vil legges til asap.";;
 			'failure') say "$who :Serien \"$imdb_title\" ble ikke lagt til." echo "";echo "$execute_add";;
 			*) say "$who :Feil; show_add, execute_add->error";echo "$execute_add";;
 		esac
@@ -315,7 +316,6 @@ check_request_flags(){
 		exit
 	}
 	parse_imdb() {
-		#TODO:  get_lang
 		xml="$(curl -s "http://www.omdbapi.com/?i=$imdbid&plot=short&r=json&apikey=$o_key")"
 		if [ "$(echo $xml)" = "The service is unavailable." ]; then echo "Nødvendig tredjepartstjeneste midlertidlig utilgjengelig. Prøv igjen senere."; exit 0; fi
 		respons="$(echo $xml |awk -F "Response\":" '{print $2}'|awk -F "\"" '{print $2}')"
@@ -363,7 +363,7 @@ check_request_flags(){
 				else
 					say "$who :Filmen $imdb_title ($imdbid) er lagt til ønskelisten."
 					if [ ! "$who" = "$channel" ]; then
-						say "$announce_channel :Filmen $imdb_title ($imdbid) er blitt lagt til wishlist."
+						say "$announce_channel :Filmen $imdb_title ($imdbid) er blitt lagt til ønskelisten."
 					fi
 
 					rm /tmp/cp_status_$imdbid 2>/dev/null
@@ -374,7 +374,7 @@ check_request_flags(){
 		esac
 	}
 	wishlist(){
-		jsonn=$(curl -s $couchpotato/api/$sofa_api/media.list/?status=active)
+		json=$(curl -s $couchpotato/api/$sofa_api/media.list/?status=active)
 		TOT=$(echo "$json" |jq -r '.total')
 		CNT=0
 		buffer="$(mktemp)"

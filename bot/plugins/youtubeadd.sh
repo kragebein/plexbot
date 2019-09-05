@@ -36,7 +36,7 @@ function add_this() {
 					fi;;	
 
 				$((results >= 2))) 
-					say "$who :$results resultat, vis de første 9:"
+					say "$who :$results resultat, vis de første 10:"
 					if [ "$(echo $json | jq -r ".Search[$i].Type")" = "series" ]; then
 						type="S"
 					else

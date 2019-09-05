@@ -1,10 +1,14 @@
 declare -A plug
 plug=(
-[/drive/drive/.rtorrent/scripts/v3/bot/plugins/gameoftag.sh]="^[.](tag)"
+[/drive/drive/.rtorrent/scripts/v3/bot/plugins/delete.sh]="^!delete"
+[/drive/drive/.rtorrent/scripts/v3/bot/plugins/gameoftag.sh]="^[.]tag"
 [/drive/drive/.rtorrent/scripts/v3/bot/plugins/imdbadd.sh]="^(https?\:\/\/)?(www\.)?imdb\.com\/.+$"
-[/drive/drive/.rtorrent/scripts/v3/bot/plugins/pb_extras.sh]="^[.](plex)"
-[/drive/drive/.rtorrent/scripts/v3/bot/plugins/rejoinchat.sh]="^[.]rejoinchat"
-[/drive/drive/.rtorrent/scripts/v3/bot/plugins/system.sh]="^[.](status)"
+[/drive/drive/.rtorrent/scripts/v3/bot/plugins/imdb.sh]="^[.]imdb"
+[/drive/drive/.rtorrent/scripts/v3/bot/plugins/missing.sh]="^[.]missing"
+[/drive/drive/.rtorrent/scripts/v3/bot/plugins/pb_extras.sh]="^[.]plex"
+[/drive/drive/.rtorrent/scripts/v3/bot/plugins/rejoinchat.sh]="^rejoinchat"
+[/drive/drive/.rtorrent/scripts/v3/bot/plugins/system.sh]="^(status)"
 [/drive/drive/.rtorrent/scripts/v3/bot/plugins/wettyservice.sh]="^wetty"
+[/drive/drive/.rtorrent/scripts/v3/bot/plugins/wishlist.sh]="^[.]wishlist"
 [/drive/drive/.rtorrent/scripts/v3/bot/plugins/youtubeadd.sh]="^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$"
 )

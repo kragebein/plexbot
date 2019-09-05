@@ -1,5 +1,6 @@
 Admin-commands available:
-wetty - start/stop wetty session
-reloadconfig - reinitialize configuration
-diediedie - This kills the bot.
-showplugins
+* wetty - start/stop wetty session
+* reloadconfig - reinitialize configuration
+* diediedie - This kills the bot.
+* showplugins - show loaded plugins
+* !delete - delete a show/movie

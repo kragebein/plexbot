@@ -1,5 +1,5 @@
 #!/bin/bash - 
-regex="^[.](status)"
+regex="^(status)"
 _script="system.sh"  # name of this file. For log reasons.
 source /drive/drive/.rtorrent/scripts/v3/bot/functions.sh # always call this lib
 uac
@@ -7,7 +7,7 @@ uac
 source /drive/drive/.rtorrent/scripts/master.sh
 # This is my personal status script. it will connect to every single server I have and post data about its status. 
 # collect statistics from the nodes.
-cmd="${cmd//.status /}"
+cmd="${cmd//status /}"
 echo "$cmd"
 
 load_david="$(remote_run plex uptime |awk -F ": " '{print $2}' |awk -F ', ' '{print $1}')"

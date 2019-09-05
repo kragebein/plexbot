@@ -1,17 +1,18 @@
 #!/bin/bash -
 # There is no reason what so ever to edit this file unless you totally know what you are doing. In that case, have fun. 
 source /drive/drive/.rtorrent/scripts/v3/bot/config.cfg
+
 source ${pb%/*}/proto/$proto.sh 
 source ${pb%/*}/db/$db.sh
 _script="functions.sh"
 DTG=$(echo "[$(date +%d-%m-%y) $(date +%H:%M:%S)]")
 log() {
 	# Log v3
-    if [ -w $log_path ]; then
-        echo "ERROR, incorrect permissions in log_path ($log_path), cannot write to it!!"
-        echo "Check permissions or edit config.cfg"
-#        exit 1
-    fi
+	if [ -w $log_path ]; then
+		echo "ERROR, incorrect permissions in log_path ($log_path), cannot write to it!!"
+		echo "Check permissions or edit config.cfg"
+		#        exit 1
+	fi
 	message=$(echo ${*##log $1} | awk -F "^$1 " '{print $2}')
 	case $1 in
 		'NOT'|'not'|'n')
@@ -47,6 +48,11 @@ log() {
 			echo "[undef]: $message"
 	esac
 }
+sql3() {
+	db="${pb%/*}/db/sqlite3.sql"
+	sqlite3 $db -line "$*" -column
+	echo "sqlite3 writing to $db: $*"
+}
 
 uac() {
 	# user access control
@@ -59,33 +65,47 @@ req_admin() {
 }
 
 reload_plugins() {
-    p=0
-    echo "declare -A plug" > $pb/plugins/.loaded
-    echo "plug=(" >> $pb/plugins/.loaded
-    for i in $pb/plugins/*.sh; do
-        lol="$(egrep "^regex=" $i)"
-        if [ ! -z "$lol" ]; then
-        lol="${lol//\"/}"
-        lol="${lol//regex=/}"
-        echo "[$i]=\"$lol\"" >> $pb/plugins/.loaded
-        let p=p+1
-    fi
-    done
-    echo ")" >> $pb/plugins/.loaded
-    chmod +x $pb/plugins/.loaded
-    say "$who :Configuration reloaded, $p plugins loaded"
+	p=0
+	echo "declare -A plug" > $pb/plugins/.loaded
+	echo "plug=(" >> $pb/plugins/.loaded
+	for i in $pb/plugins/*.sh; do
+		lol="$(egrep "^regex=" $i)"
+		if [ ! -z "$lol" ]; then
+			lol="${lol//\"/}"
+			lol="${lol//regex=/}"
+			echo "[$i]=\"$lol\"" >> $pb/plugins/.loaded
+			let p=p+1
+		fi
+	done
+	echo ")" >> $pb/plugins/.loaded
+	chmod +x $pb/plugins/.loaded
+	say "$who :Configuration reloaded, $p plugins loaded"
 }
 
 html_ascii () {
 	out="$content"  
-	out="${out//&nbsp;/ }"
-	out="${out//&amp;/&}"
-	out="${out//&lt;/<}"
-	out="${out//&gt;/>}"
-	out="${out//&quot;/'"'}"
-	out="${out//&\#39;/"'"}"
-	out="${out//&ldquo;/'"'}" 
-	out="${out//&rdquo;/'"'}"
+	out="${out//%/%25}"
+	out="${out//\&/%26}"
+	out="${out//$/%24}"
+	out="${out// /%20}"
+	out="${out//"'"/%27}"
+	out="${out//'"'/%22}"
+	out="${out//\//%2F}"
+	out="${out//\(/%28}"
+	out="${out//\)/%29}"
+	out="${out//</%3C}"
+	out="${out//>/%3E}"
+	out="${out//\?/%3F}"
+	out="${out//\!/%21}"
+	out="${out//=/%3D}"
+	out="${out//\\/%5C}"
+	out="${out//,/%2C}"
+	out="${out//:/%3A}"
+	out="${out//;/%3B}"
+	out="${out//\[/%5B}"
+	out="${out//\]/%5D}"
+	out="${out//\{/%7B}"
+	out="${out//\}/%7D}"
 	echo "$out"
 }
 lastadd="/tmp/.lastadd"
@@ -93,11 +113,55 @@ lastadd() {
 	echo "$imdbid" > $lastadd
 }
 load() {
-if ! source "$1" ; then
-        _script="functions_loader"
-        log e "Unable to load $1, syntax error. See error.log"
-fi
+	if ! source "$1" ; then
+		_script="functions_loader"
+		log e "Unable to load $1, syntax error. See error.log"
+	fi
 }
+ttdb() {
+	rewrite() {
+		buffer=$(mktemp)
+		cat $config_path/config.cfg | sed "s/ttdb_token=\"$ttdb_token\"/ttdb_token=\"$key\"/g" >$buffer
+		mv -f "$buffer" "$config_path/config.cfg";chmod +x $config_path/config.cfg
+	}
+	get_key() {
+		key="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" 'https://api.thetvdb.com/refresh_token' |jq -r '.token')"
+		if [ "$key" = "null" ]; then
+			key="$(curl -s -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{ "apikey": "'"$ttdb_api"'",  "userkey": "'"$ttdb_ukey"'",  "username": "'"$ttdb_user"'" }' 'https://api.thetvdb.com/login' |jq -r '.token')"
+			if [ "$key" = "null" ]; then
+				log s "Could not refresh/get new token! ttdb token failiure";exit
+			fi
+		fi
+		rewrite "$key"
+	}
+	check() {
+		_test="$(echo "$json" |jq -r '.Error')"
+		if [ "$_test" != "NULL" ]; then
+			case $_test in
+				'Not authorized')
+					get_key;;
+				'Resource not found')
+					exit;;      # ttdbid not found
+				*)
+					echo "ERROR: $json" 
+					exit
+					;;
+			esac
+		fi
+
+	}
+	imdbid="$input"
+	if [[ "$input" =~ ^.t.{0,9} ]]; then
+		json="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" "https://api.thetvdb.com/search/series?imdbId=$input" |  sed 's/\\r//g' | sed s'/\\n//')"
+		check "$json";export ttdbid="$(echo -ne "$json" |jq '.data[0].id')"
+	else
+		json="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" "https://api.thetvdb.com/series/$input" |  sed 's/\\r//g' | sed s'/\\n//g')"
+		check "$json";export imdbid="$(echo -ne "$json" |jq -r '.data.imdbId')"
+	fi
+
+}
+
+
 #pl() { # not sure if this will ever be 
 #	if test -f ../lang/$language.lang; then
 #		source ../lang/$language.lang

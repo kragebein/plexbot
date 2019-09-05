@@ -1,0 +1,8 @@
+#!/bin/bash
+if [ "$1" = "" ]; then
+	cmd="help"
+else
+	cmd="$*"
+fi
+DEBUG=yes who_orig="StianLangvann" channel="" cmd="$cmd" ./input.sh
+

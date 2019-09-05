@@ -39,7 +39,7 @@ get_key() {
 }
 check() {
 	_test="$(echo "$json" |jq -r '.Error')"
-	if [ "$_test" != "null" ]; then
+	if [ "$_test" != "NULL" ]; then
 		case $_test in
 			'Not authorized') 
 				get_key

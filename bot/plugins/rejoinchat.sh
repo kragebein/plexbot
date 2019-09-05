@@ -1,6 +1,6 @@
 #!/bin/bash
 _script="rejoinchat.sh"
-regex="^[.]rejoinchat"
+regex="^rejoinchat"
 uac 
 source /drive/drive/.rtorrent/scripts/v3/bot/functions.sh 
 log n "Rejoinchat triggered by $who"

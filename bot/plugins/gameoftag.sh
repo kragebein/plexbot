@@ -2,17 +2,17 @@
 source /drive/drive/.rtorrent/scripts/master.sh
 # gameoftagv2, moved game logic into db. 
 _script="gameoftag.sh"
-regex="^[.](tag)"
+regex="^[.]tag"
 uac
 #while getopts "u:c:m:" flag; do case $flag in u) player="$OPTARG";; c) channel="$OPTARG";; m) action="$OPTARG";;esac;done
 who="$who" cmd="${cmd#.tag *}" channel="$channel"
 player="$who"
-action="${cmd/.tag/}"
+action="${cmd/tag/}"
 if [ "$action" = "help" ]; then
 	say "$player :AGOT helpline."
 	say "$player :.tag register - registrer deg."
 	say "$player :.tag unregister - avregistrer deg."
-	say "$player :.tag vil i februar registrer at du har gitt bort en tag, funk kun dersom du e registrert speller, utenom februar vil du kun faa opp kem som har aarets tag."
+	say "$player :.tag vil i februar registrer at du har gitt bort en tag, funk kun dersom du e registrert speller, utenom februar vil du kun få opp kem som har årets tag."
 	exit;
 fi
 payload() {

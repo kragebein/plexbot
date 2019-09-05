@@ -11,15 +11,15 @@ DEBUG="yes" /drive/drive/.rtorrent/scripts/irssi.sh .request $input # kjør requ
 request_response="$(cat /tmp/$input.response)" # Hent responsen
 rm /tmp/$input.response # removes the temp file
 case $request_response in
-    # notfound, added, alreadyadded, errortryagain,ttdbnull
-'added')
-    say "$who :Thx, la den tel";;
+	# notfound, added, alreadyadded, errortryagain,ttdbnull
+	'added')
+	say "$who :Thx, la den tel";;
 'alreadyadded')
-    say "$who :Allerede i Plex." ;; 
+	say "$who :Allerede i Plex." ;; 
 'notfound')
-    : ;;
+	: ;;
 'errortryagain')
-    : ;; 
+	: ;; 
 'ttdbnull')
-    : ;;
+	: ;;
 esac
