@@ -1,6 +1,8 @@
 # Plexbot
+Plexbot is bot that lets you easily search, add, delete, refresh and finetune your Plex library. 
+It was initially created because i hated when my friends asked me if I could add this and that to my Plex server, so
+I instead created this that lets my friends just add it themselves through facebook messenger. 
 
-Plexbot is bot that lets you easly search, add, delete, refresh, finetune your Plex library. 
 It is entirely written in bash and supports plugins that can be written very easily in bash or whatever language you like to code in. 
 
 The bot can run on just about any protocol your heart desire; irc, msn, facebook, discord, slack, shell, pushbullet, sms, skype, snapchat, telegram and beyond as long as the bot has a bash shell it can run on. 
