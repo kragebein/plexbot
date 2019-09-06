@@ -11,4 +11,5 @@ No action is needed on any of these systems when this bot is set up. Plexbot wil
 
 
 
-Requirements: [jq](https://stedolan.github.io/jq/), [xml2json](https://github.com/hay/xml2json),pup, x2j, sqlite3 (or oracle|mysql)
+Requirements: [sickrage](https://github.com/SiCKRAGE/SiCKRAGE) [couchpotato](https://couchpota.to/) [jq](https://stedolan.github.io/jq/), [xml2json](https://github.com/hay/xml2json),[pup](https://github.com/ericchiang/pup), [x2j](https://www.npmjs.com/package/xml2json)
+
