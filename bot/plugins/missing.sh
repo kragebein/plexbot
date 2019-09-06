@@ -43,7 +43,7 @@ case "$check" in
 		case $episode_status in
 			'Downloaded'|'Archived')
 				say "$who :$show_title - \"$episode_name\" fins allerede i systemet, men endrer likevel status på episoden. Blir lagt til pånytt."
-				curl -s "$sickrage/api/$s_key/?cmd=episode.setstatus&status=wanted&indexerid=$thetvdb_id&season=$season&episode=$episode"
+				curl -s "$sickrage/api/$s_key/?cmd=episode.setstatus&status=wanted&indexerid=$thetvdb_id&season=$season&episode=$episode&force=1"
 				;;
 			'Wanted')
 				episode_search=$(curl -s  "$sickrage/api/$s_key/?cmd=episode.search&indexerid=$thetvdb_id&season=$season&episode=$episode")
@@ -58,7 +58,7 @@ case "$check" in
 
 			'Skipped'|'Ignored'|'Snatched')
 				say "$who :Søker etter $show_title - \"$episode_name\" .."
-				status_change=$(curl -s "$sickrage/api/$s_key/?cmd=episode.setstatus&status=wanted&indexerid=$thetvdb_id&season=$season&episode=$episode")
+				status_change=$(curl -s "$sickrage/api/$s_key/?cmd=episode.setstatus&status=wanted&indexerid=$thetvdb_id&season=$season&episode=$episode&force=1")
 
 				case "$(echo "$status_change" |jq -r '.result')" in
 					'failure') say "$who :Episoden mangler, men kan ikke endre status";exit;;
