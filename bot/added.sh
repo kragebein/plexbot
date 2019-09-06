@@ -19,7 +19,6 @@ notify() {
 }
 
 to_db() {
-	imdbid="$imdb"
 	rating_key="$key"
 	case "$db" in
 		'sqlite3')
@@ -30,7 +29,7 @@ to_db() {
 				'movie')
 				sql3 "INSERT INTO content (type, imdbid, rating_key, filepath) VALUES ('movie', '$imdbid', '$rating_key', '$path')";;
 				'tv')
-				sql3 "INSERT INTO content (type, imdbid, grandparent_rating_key, rating_key, season, episode, filepath) VALUES ('show', '$imdbid', '$grandparent_rating_key', '$rating_key', '$season', '$episode', '$file')";;
+				sql3 "INSERT INTO content (type, imdbid, grandparent_rating_key, rating_key, season, episode, filepath) VALUES ('show', '$imdbid', '$grandparent_rating_key', '$rating_key', '$season', '$episode', '$path')";;
 				esac
 			fi ;;
 		'oracle')
@@ -103,16 +102,20 @@ tvshows() {
 	genre="tv"
 	episode="$(echo "$JSON_ORIG" |jq '.response.data.media_index' |sed 's/"//g' |sed 's/^1$/01/g' |sed 's/^2$/02/g' |sed 's/^3$/03/g' |sed 's/^4$/04/g' |sed 's/^5$/05/g' |sed 's/^6$/06/g' |sed 's/^7$/07/g' |sed 's/^8$/08/g' |sed 's/^9$/09/g' | sed 's/^0$/00/g' )"
 	season="$(echo "$JSON_ORIG" | jq '.response.data.parent_media_index' |sed 's/"//g')"
-	grandparent_key="$(echo "$JSON_ORIG" |jq -r '.response.data.grandparent_rating_key')"
+	grandparent_rating_key="$(echo "$JSON_ORIG" |jq -r '.response.data.grandparent_rating_key')"
 	title="$(echo "$JSON_ORIG" |  jq '.response.data.grandparent_title' |sed 's/"//g' |sed -E 's/(\((19|20)[[:digit:]]{2}\))$//g')"
 	rating="$(echo "$JSON_ORIG" | jq '.response.data.rating' | sed 's/"//g')"
 	release="$(echo "$JSON_ORIG" |jq '.response.data.originally_available_at' |sed 's/"//g')"
 	rel_year="$(echo "$JSON_ORIG" |jq -r '.response.data.year' |sed 's/"//g')"
+	imdb="$(echo "$JSON_ORIG" |jq -r ".response.data.guid" 2>/dev/null)"
+	imdb=${imdb##*//};imdb=${imdb%%\?*};imdb=${imdb%%/*}
+	imdbid="$(/drive/drive/.rtorrent/scripts/ttdb.sh "$imdb")"
 	numbermagic 
 	response="S: $title ${season}x${episode} ($released) [$rating/10.0]"
 	path="$(echo "$JSON_ORIG" | jq -r '.response.data.media_info[0].parts[0].file')"
+	to_db
 	if [ "$announce_new" = "yes" ]; then
-		say "$RES :$response"
+		say "$announce_channel :$response"
 		notify
 	fi
 	log n "$response"
@@ -128,7 +131,7 @@ movies() {
 	rel_year="$(echo "$JSON_ORIG" |jq -r '.response.data.year' |sed 's/"//g')"
 	path="$(echo "$JSON_ORIG" |jq -r '.response.data.media_info[0].parts[0].file')"
 	imdb="$(echo "$JSON_ORIG" |jq -r ".response.data.guid" 2>/dev/null)"
-	imdb=${imdb##*//};imdb=${imdb%%\?*}
+	imdbid=${imdb##*//};imdb=${imdb%%\?*}
 	if [ "$rating" = "" ]; then # bedre med ratings fra imdb sjøl.
 		get_imdbid="$(echo "$JSON_ORIG" | jq '.response.data.guid' | awk -F "//" '{print $2}' |awk -F "?" '{print $1}')"
 		rating="$(curl -s "http://www.omdbapi.com/?i=$get_imdbid&apikey=$omdb_key" |jq -r '.Ratings[0].Value')"
@@ -143,7 +146,7 @@ movies() {
 	response="$C $title ($released) [$rating/10.0]"
 
 	if [ "$announce_new" = "yes" ]; then
-		say "$RES :$response"
+		say "$announce_channel :$response"
 		notify
 
 	fi

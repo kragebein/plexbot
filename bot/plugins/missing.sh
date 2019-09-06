@@ -12,7 +12,7 @@ imdbid="${input%% *}"
 eps="${input#*$imdbid }"
 season="${eps% *}"
 episode="${eps#* }"
-# First we check imdb if the movie actually exists
+# First we check imdb if the show actually exists
 JSON=$(curl -s "http://www.omdbapi.com/?i=$imdbid&apikey=$o_key&type=series")
 title="$(echo "$JSON" |jq -r '.Title')"
 if [ "$(echo "$JSON" |jq -r '.Response')" = "False" ]; then
@@ -28,12 +28,13 @@ if [ "$season" = "$imdbid" ]; then
 	exit
 fi
 
-# Lets check if this episode is actually on the system.
-# ttdb lets us "convert" the imdbid to thetvdb id which sickrage uses. 
-thetvdb_id="$(/drive/drive/.rtorrent/scripts/ttdb.sh $imdbid)"
-json="$(curl -s "$sickrage/api/$s_key/?cmd=episode&indexerid=$thetvdb_id&season=$season&episode=$episode")"
-check=$(echo "$json" |jq -r '.result')
+#We have 2 (actually 3) datapoins to check here. sql database will tell us if the episode is physically on the system, 
+# while sickrage will check if the episode at some point has been downloaded. 
 
+thetvdb_id="$(/drive/drive/.rtorrent/scripts/ttdb.sh "$imdbid")"
+json="$(curl -s "$sickrage/api/$s_key/?cmd=episode&indexerid=$thetvdb_id&season=$season&episode=$episode")"
+echo "$json";exit
+check=$(echo "$json" |jq -r '.result')
 case "$check" in
 	'success')
 		episode_status=$(echo "$json" |jq -r '.data.status')
