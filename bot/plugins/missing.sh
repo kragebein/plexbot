@@ -31,7 +31,7 @@ fi
 #We have 2 (actually 3) datapoins to check here. sql database will tell us if the episode is physically on the system, 
 # while sickrage will check if the episode at some point has been downloaded. 
 
-thetvdb_id="$(/drive/drive/.rtorrent/scripts/ttdb.sh "$imdbid")"
+thetvdb_id="$(ttdb "$imdbid")"
 json="$(curl -s "$sickrage/api/$s_key/?cmd=episode&indexerid=$thetvdb_id&season=$season&episode=$episode")"
 echo "$json";exit
 check=$(echo "$json" |jq -r '.result')

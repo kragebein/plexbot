@@ -109,7 +109,7 @@ tvshows() {
 	rel_year="$(echo "$JSON_ORIG" |jq -r '.response.data.year' |sed 's/"//g')"
 	imdb="$(echo "$JSON_ORIG" |jq -r ".response.data.guid" 2>/dev/null)"
 	imdb=${imdb##*//};imdb=${imdb%%\?*};imdb=${imdb%%/*}
-	imdbid="$(/drive/drive/.rtorrent/scripts/ttdb.sh "$imdb")"
+	imdbid="$(ttdb "$imdb")"
 	numbermagic 
 	response="S: $title ${season}x${episode} ($released) [$rating/10.0]"
 	path="$(echo "$JSON_ORIG" | jq -r '.response.data.media_info[0].parts[0].file')"

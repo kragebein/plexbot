@@ -68,7 +68,7 @@ check_request_flags(){
 		nope=0
 		imdbid=$(echo "$JSON" |jq -r ".imdbID" 2>/dev/null)
 		show_title=$(echo "$JSON" |jq -r ".Title" 2>/dev/null)
-		thetvdb_id=$(/drive/drive/.rtorrent/scripts/ttdb.sh $imdbid)
+		thetvdb_id=$(ttdb $imdbid)
 		if [ "$thetvdb_id" = "" ]; then
 			say "$who :thetvdb api nede?";exit
 		fi
@@ -170,7 +170,7 @@ check_request_flags(){
 			title=$(echo "$JSON" |jq -r ".Search[$COUNTER].Title" 2>/dev/null)
 			year=$(echo "$JSON" |jq -r ".Search[$COUNTER].Year" 2>/dev/null)
 			imdbid=$(echo "$JSON" |jq -r ".Search[$COUNTER].imdbID" 2>/dev/null)
-			thetvdb_id="$(/drive/drive/.rtorrent/scripts/ttdb.sh $imdbid)"
+			thetvdb_id="$(ttdb $imdbid)"
 			sanity=$(curl -s "$sickrage/api/$s_key/?cmd=show.cache&tvdbid=$thetvdb_id")
 			check=$(echo "$sanity" |jq -r '.result' 2>/dev/null)
 			case $check in
@@ -202,7 +202,7 @@ check_request_flags(){
 		:
 	}
 	show_get_id() {
-		thetvdb_id="$(/drive/drive/.rtorrent/scripts/ttdb.sh $imdbid)"
+		thetvdb_id="$(ttdb $imdbid)"
 		#echo "$imdbid"
 		#echo "$(curl -s "http://thetvdb.com/index.php?seriesname=&fieldlocation=4&language=7&genre=&year=&network=&zap2it_id=&tvcom_id=&imdb_id=$imdbid&order=translation&addedBy=&searching=Search&tab=advancedsearch")"
 		case $thetvdb_id in
@@ -292,7 +292,7 @@ check_request_flags(){
 			title=$(echo "$JSON" |jq -r ".Search[$COUNTER].Title" 2>/dev/null)
 			year=$(echo "$JSON" |jq -r ".Search[$COUNTER].Year" 2>/dev/null)
 			imdbid=$(echo "$JSON" |jq -r ".Search[$COUNTER].imdbID" 2>/dev/null)
-			thetvdb_id=$(/drive/drive/.rtorrent/scripts/ttdb.sh $imdbid)
+			thetvdb_id=$(ttdb $imdbid)
 			sanity=$(curl -s "$sickrage/api/$s_key/?cmd=show.cache&tvdbid=$thetvdb_id")
 			check=$(echo "$sanity" |jq -r '.result')
 			case $check in

@@ -29,7 +29,7 @@ case "$type" in
 			rm -rf "$filepath"
 			sql3 "DELETE from content WHERE imdbid='$imdbid'"
 		done
-		rating_key="$(/drive/drive/.rtorrent/scripts/ttdb.sh "$imdbid")"
+		ttdb "$imdbid" # this creates $rating_key
 		curl -s "$sickrage/api/$s_key/?cmd=show.delete&tvdbid=$rating_key"
 		say "$who :Title og dens ${#array[@]} episoda e fjerna fra Plex."
 	else

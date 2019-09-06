@@ -128,11 +128,13 @@ load() {
 		log e "Unable to load $1, syntax error. See error.log"
 	fi
 }
-ttdb() {
-	rewrite() {
+
+ttdb() { # if you input imdbid it will create $rating_key, if you input rating_key it will create $imdbid
+		rewrite() {
 		buffer=$(mktemp)
-		cat $config_path/config.cfg | sed "s/ttdb_token=\"$ttdb_token\"/ttdb_token=\"$key\"/g" >$buffer
-		mv -f "$buffer" "$config_path/config.cfg";chmod +x $config_path/config.cfg
+		cat "$pb/config.cfg" | sed "s/ttdb_token=\"$ttdb_token\"/ttdb_token=\"$key\"/g" > "$buffer"
+		mv -f "$buffer" "$pb/config.cfg";chmod +x "$pb/config.cfg"
+		_script="core.sh";log n "reloaded token to config"
 	}
 	get_key() {
 		key="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" 'https://api.thetvdb.com/refresh_token' |jq -r '.token')"
@@ -146,36 +148,34 @@ ttdb() {
 	}
 	check() {
 		_test="$(echo "$json" |jq -r '.Error')"
-		if [ "$_test" != "NULL" ]; then
+		if [ "$_test" != "null" ]; then
 			case $_test in
 				'Not authorized')
 					get_key;;
 				'Resource not found')
 					exit;;      # ttdbid not found
 				*)
-					echo "ERROR: $json" 
+					echo "$_test" 
 					exit
 					;;
 			esac
 		fi
 
 	}
-	imdbid="$input"
+	input="$1"
 	if [[ "$input" =~ ^.t.{0,9} ]]; then
 		json="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" "https://api.thetvdb.com/search/series?imdbId=$input" |  sed 's/\\r//g' | sed s'/\\n//')"
-		check "$json";ttdbid="$(echo -ne "$json" |jq '.data[0].id')";export ttbid
+		check "$json"
+		rating_key="$(echo -ne "$json" |jq '.data[0].id')"
+		export rating_key
+		echo "$rating_key"
 	else
 		json="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" "https://api.thetvdb.com/series/$input" |  sed 's/\\r//g' | sed s'/\\n//g')"
-		check "$json";imdbid="$(echo -ne "$json" |jq -r '.data.imdbId')";export imdbid
+		check "$json"
+		imdbid="$(echo -ne "$json" |jq -r '.data.imdbId')"
+		export imdbid
+		echo "$imdbid"
 	fi
 
 }
-
-
-#pl() { # not sure if this will ever be 
-#	if test -f ../lang/$language.lang; then
-#		source ../lang/$language.lang
-#	else
-#		log e "Language file for \"$language\" either doesnt exist or contains a syntax error. "
-#	fi
-#}
+echo "test"

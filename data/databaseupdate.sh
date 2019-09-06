@@ -27,7 +27,7 @@ update_sqlite3() {
 			imdbid="$(echo "$metadata" | jq -r '.response.data.guid')"
 			imdbid=${imdbid##*//}
 			imdbid=${imdbid%%\?*}
-			imdbid="$(/drive/drive/.rtorrent/scripts/ttdb.sh "$imdbid")"
+			imdbid="$(ttdb "$imdbid")"
 			s=0 # seasons
 			while [ "$s" -le "$num_seasons" ]; do
 				parent_rating_key="$(echo "$parent_data" | jq -r ".response.data.data[$s].rating_key")"
