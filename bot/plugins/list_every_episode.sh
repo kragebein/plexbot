@@ -31,7 +31,7 @@ while [ "$c" -le "$num_series" ]; do
 		name="$(echo "$metadata" | jq -r '.response.data.title' | sed "s/'//g")"
 		imdbid="$(echo "$metadata" |jq -r '.response.data.guid')"
 		imdbid=${imdbid##*//};imdbid=${imdbid%%\?*}
-		imdbid="$(/drive/drive/.rtorrent/scripts/ttdb.sh $imdbid)"
+		imdbid="$(/drive/drive/.rtorrent/scripts/ttdb.sh "$imdbid")"
 		s=0	# seasons
 		while [ "$s" -le "$num_seasons" ]; do
 			parent_rating_key="$(echo "$parent_data" |jq -r ".response.data.data[$s].rating_key")"
@@ -44,16 +44,13 @@ while [ "$c" -le "$num_series" ]; do
 					if [ "$rating_key" != "null" ]; then
 						metadata="$(curl -s "$tt_hostname/api/v2?apikey=$tt_apikey&cmd=get_metadata&rating_key=$rating_key")"
 						#echo "$metadata";exit
+						file="$(echo "$metadata" | jq -r '.response.data.media_info[0].parts[0].file' |tr -d \')"
 						name="$(echo "$metadata" | jq -r '.response.data.title' |sed s"/'//g")"
 						season="$(echo "$metadata" | jq -r '.response.data.parent_media_index')"
 						episode="$(echo "$metadata" | jq -r '.response.data.media_index')"
 						show="$(echo "$metadata" |jq -r '.response.data.grandparent_title' |sed "s/'//g")"
-						echo "season: $season"
-						echo "episode: $episode"
-						echo "rating_key: $rating_key"
-						echo "partent_rating_key: $parent_rating_key"
-						echo "grandparent_rating_key: $grandparent_rating_key"
-						echo "imdb: $imdbid"
+						sql3 "INSERT INTO content (type, imdbid, grandparent_rating_key, rating_key, season, episode, filepath) VALUES ('show', '$imdbid', '$grandparent_rating_key', '$rating_key', '$season', '$episode', '$file')"
+						echo "$show (${season}x${episode}) [${rating_key}]"
 					fi
 					let e=e+1
 

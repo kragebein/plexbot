@@ -11,10 +11,12 @@ while [ "$COUNTER" -le "$num" ]; do
 	imdb="$(echo "$metadata" |jq -r ".response.data.guid" 2>/dev/null)"
 	imdb_rating="$(echo "$metadata" |jq -r '.response.data.rating' 2>/dev/null)"
 	imdb=${imdb##*//};imdb=${imdb%%\?*}
-	file="$(echo "$metadata" | jq '.response.data.media_info[0].parts[0].file' |tr -d \')"
+	file="$(echo "$metadata" | jq -r '.response.data.media_info[0].parts[0].file' |tr -d \')"
 	if [ "$imdb_rating" != "null" ]; then	# Entries without ratings are remnants of old content in the library
 		file="$(echo "$metadata" | jq -r '.response.data.media_info[0].parts[0].file' |tr -d \' 2>/dev/null)"
-		sql3 "INSERT into content VALUES('$imdb', '$rating_key', '$file')"
+		#sql3 "INSERT into content VALUES('$imdb', '$rating_key', '$file')"
+		sql3 "INSERT INTO content (type, imdbid, rating_key, filepath) VALUES ('movie', '$imdb', '$rating_key', '$file')"
+		echo "$show (${season}x${episode}) [${rating_key}]"
 	fi
 	let COUNTER=COUNTER+1
 

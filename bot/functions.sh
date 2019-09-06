@@ -8,7 +8,7 @@ _script="functions.sh"
 DTG=$(echo "[$(date +%d-%m-%y) $(date +%H:%M:%S)]")
 log() {
 	# Log v3
-	if [ -w $log_path ]; then
+	if [ -w $log_path/$_script ]; then
 		echo "ERROR, incorrect permissions in log_path ($log_path), cannot write to it!!"
 		echo "Check permissions or edit config.cfg"
 		#        exit 1
@@ -48,19 +48,28 @@ log() {
 			echo "[undef]: $message"
 	esac
 }
-sql3() {
-	db="${pb%/*}/db/sqlite3.sql"
-	sqlite3 $db -line "$*" -column
-	echo "sqlite3 writing to $db: $*"
-}
+
+myq() {
+                # syntax: myq "databasenavn select blah from blah where blah osvosv" avslutt med ;"
+                db=$(echo "$*" |awk -F " " '{print $1}')
+                query=$(echo "$*" |awk -F "$db " '{print $2}')
+                mysql --login-path=local -D "$db" -s -s -N -e "$query"
+                _script="mysql.sh"
+                case $query in
+                        *INSERT*)
+                                log n "SQL write: $query";;
+                esac
+                unset _script
+        }
+
 
 uac() {
 	# user access control
-	for i in ${!auth_user[@]}; do if [ "$who_orig" == "${auth_user[$i]}" ]; then authorized="y";fi;done
+	for i in "${!auth_user[@]}"; do if [ "$who_orig" == "${auth_user[$i]}" ]; then authorized="y";fi;done
 	if [ -z "$authorized" ]; then say "$who :Unauthorized";exit;fi
 }
 req_admin() {
-	for i in $(seq ${!admin_user[@]});do if [ "$who_orig" == ${admin_user[$i]} ]; then bot_admin="y";fi;done
+	for i in $(seq "${!admin_user[@]}");do if [ "$who_orig" == "${admin_user[$i]}" ]; then bot_admin="y";fi;done
 	if [ -z $bot_admin ]; then say "$who :This action requires elevated privs. Unauthorized.";exit;fi
 }
 
@@ -84,6 +93,7 @@ reload_plugins() {
 
 html_ascii () {
 	out="$content"  
+	out="$*"
 	out="${out//%/%25}"
 	out="${out//\&/%26}"
 	out="${out//$/%24}"
@@ -153,10 +163,10 @@ ttdb() {
 	imdbid="$input"
 	if [[ "$input" =~ ^.t.{0,9} ]]; then
 		json="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" "https://api.thetvdb.com/search/series?imdbId=$input" |  sed 's/\\r//g' | sed s'/\\n//')"
-		check "$json";export ttdbid="$(echo -ne "$json" |jq '.data[0].id')"
+		check "$json";ttdbid="$(echo -ne "$json" |jq '.data[0].id')";export ttbid
 	else
 		json="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" "https://api.thetvdb.com/series/$input" |  sed 's/\\r//g' | sed s'/\\n//g')"
-		check "$json";export imdbid="$(echo -ne "$json" |jq -r '.data.imdbId')"
+		check "$json";imdbid="$(echo -ne "$json" |jq -r '.data.imdbId')";export imdbid
 	fi
 
 }

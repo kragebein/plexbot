@@ -18,7 +18,7 @@ if [ "$bot_active" = "no" ]; then
 fi
 # Dynamic plugin loader. (reloadconfig will reload plugin array)
 source $pb/plugins/.loaded
-for i in ${!plug[@]}; do
+for i in "${!plug[@]}"; do
 	if [[ "$cmd" =~ ${plug[$i]} ]]; then
 		load $i
 	fi
@@ -43,7 +43,7 @@ fi
 if [[ "$cmd" =~ ^showplugins ]]; then
 	uac
 	say "$who :Loaded plugins and their triggers"
-	for i in ${!plug[@]}; do 
+	for i in "${!plug[@]}"; do 
 		say "$who : ${i##*/} =~ ${plug[$i]}"
 	done
 fi
