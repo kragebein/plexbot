@@ -85,6 +85,13 @@ write_series_data() {
 write_episode_data() {
 	: #
 }
-input="48813"
-db_get_data
-for i in "${!db_data[@]}"; do echo "$i: ${db_data[$i]}"; done
+
+myq() {
+	# syntax: myq "databasenavn select blah from blah where blah osvosv" avslutt med ;"
+    db=$(echo "$*" |awk -F " " '{print $1}')
+    query=$(echo "$*" |awk -F "$db " '{print $2}')
+    mysql --login-path=local -D "$db" -s -s -N -e "$query"
+    _script="sql.log"
+    log n "$query"
+    unset _script
+}

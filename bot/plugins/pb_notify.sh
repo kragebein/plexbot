@@ -5,7 +5,10 @@
 # 
 #         USAGE: ./pb_notify.sh 
 # 
-#   DESCRIPTION: TODO: wondering if this is better suited for sqlite3
+#   DESCRIPTION: Enables a notify function, when a user requests a movie/show
+# 				 the bot will notify them through private message as well as 
+#				 through the announce channel.
+
 source $pb/../../master.sh
 _script="pb_notify.sh"
 #regex="^[.]notify.+$"
@@ -17,6 +20,19 @@ else
     imdbid="$(echo "$cmd" | egrep -wo "tt[0-9]{1,19}")"
 fi
 
+case "$db" in
+    'mysql') 
+    count() { myq "plexbot SELECT count(*) FROM  notify WHERE imdbid='$imdbid' AND who='$who'" ;}
+    firsttime() { myq "plexbot SELECT count(*) FROM  notify WHERE who='$who'"; }
+    add() { myq "plexbot INSERT INTO notify VALUES('$orig_who', '$imdbid', '$rating_key');" ;}
+    delete() { myq "plexbot DELETE FROM notify WHERE imdbid='$imdbid' AND who='$who';" ;}
+    ;;
+    'sqlite3')
+    count() { sql3 "SELECT count(*) FROM  notify WHERE imdbid='$imdbid' AND who='$who'" ;}
+    firsttime() { sql3 "SELECT count(*) FROM  notify WHERE who='$who'" ;}
+    add() { sql3 "INSERT INTO notify VALUES('$orig_who', '$imdbid', '$rating_key')" ;}
+    delete() { sql3 "DELETE FROM notify WHERE imdbid='$imdbid' AND who='$who'" ;}
+esac
 
 rating_key="${RANDOM}"
 if [ "$imdbid" = "null" ]; then
@@ -46,12 +62,13 @@ notify_add() {
 	if [ "$cmd" = "request" ]; then
 		if [ "$make" = "movie" ]; then
 			if [ "$(cat /tmp/.request.$imdbid)" = "$imdbid" ]; then
-				myq "plexbot INSERT INTO notify VALUES('$orig_', '$imdbid', '$rating_key');"
+				myq "plexbot INSERT INTO notify VALUES('$orig_who', '$imdbid', '$rating_key');"
 				rm /tmp/.request.$imdbid
 				exit
 			fi
 		fi
 	else
+
 		myq "plexbot INSERT INTO notify VALUES('$orig_who', '$imdbid', '$rating_key');"
 		if [ "$make" = "series" ]; then
 			say "$who :Du har aktivert varsler for $title, du vil bi varlsa når neste episode e kommet på Plex."

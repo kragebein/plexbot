@@ -1,15 +1,14 @@
 #!/bin/bash -
 # There is no reason what so ever to edit this file unless you totally know what you are doing. In that case, have fun. 
 source /drive/drive/.rtorrent/scripts/v3/bot/config.cfg
+#source "${pb%/*}/lang/$language.lang" #TODO
 
-source ${pb%/*}/proto/$proto.sh 
-source ${pb%/*}/db/$db.sh
 _script="functions.sh"
 DTG=$(echo "[$(date +%d-%m-%y) $(date +%H:%M:%S)]")
 log() {
 	# Log v3
-	if [ -w $log_path/$_script ]; then
-		echo "ERROR, incorrect permissions in log_path ($log_path), cannot write to it!!"
+	if ! [ -w "$log_path/$_script" ]; then
+		echo "ERROR, incorrect permissions in log_path ($log_path/$_script), cannot write to it!!"
 		echo "Check permissions or edit config.cfg"
 		#        exit 1
 	fi
@@ -48,29 +47,24 @@ log() {
 			echo "[undef]: $message"
 	esac
 }
-
-myq() {
-                # syntax: myq "databasenavn select blah from blah where blah osvosv" avslutt med ;"
-                db=$(echo "$*" |awk -F " " '{print $1}')
-                query=$(echo "$*" |awk -F "$db " '{print $2}')
-                mysql --login-path=local -D "$db" -s -s -N -e "$query"
-                _script="mysql.sh"
-                case $query in
-                        *INSERT*)
-                                log n "SQL write: $query";;
-                esac
-                unset _script
-        }
-
+load() { #note to self, log before load.
+	if ! source "$1" ; then
+		_script="functions_loader"
+		log e "Unable to load $1, see error log."
+	fi
+}
+load "${pb%/*}/proto/$proto.sh"		#load protocol
+load "${pb%/*}/db/$db.sh"			#load database
 
 uac() {
 	# user access control
 	for i in "${!auth_user[@]}"; do if [ "$who_orig" == "${auth_user[$i]}" ]; then authorized="y";fi;done
-	if [ -z "$authorized" ]; then say "$who :Unauthorized";exit;fi
+	if [ -z "$authorized" ]; then say "$who :Beklager, du e ikke autorisert.";log s "uac: $who_orig prøvd å bruk plexbota.";exit;fi
 }
 req_admin() {
+	# admin access control
 	for i in $(seq "${!admin_user[@]}");do if [ "$who_orig" == "${admin_user[$i]}" ]; then bot_admin="y";fi;done
-	if [ -z $bot_admin ]; then say "$who :This action requires elevated privs. Unauthorized.";exit;fi
+	if [ -z $bot_admin ]; then say "$who :Den her handlinga krev høgere tilgang. Uautorisert.";log s "$who_orig prøvd å bruk en adminkommando";exit;fi
 }
 
 reload_plugins() {
@@ -122,19 +116,14 @@ lastadd="/tmp/.lastadd"
 lastadd() {
 	echo "$imdbid" > $lastadd
 }
-load() {
-	if ! source "$1" ; then
-		_script="functions_loader"
-		log e "Unable to load $1, syntax error. See error.log"
-	fi
-}
 
 ttdb() { # if you input imdbid it will create $rating_key, if you input rating_key it will create $imdbid
-		rewrite() {
+_script="ttdb.log"
+	rewrite() {
 		buffer=$(mktemp)
 		cat "$pb/config.cfg" | sed "s/ttdb_token=\"$ttdb_token\"/ttdb_token=\"$key\"/g" > "$buffer"
 		mv -f "$buffer" "$pb/config.cfg";chmod +x "$pb/config.cfg"
-		_script="core.sh";log n "reloaded token to config"
+		log n "rewrote token to config"
 	}
 	get_key() {
 		key="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" 'https://api.thetvdb.com/refresh_token' |jq -r '.token')"
@@ -178,4 +167,3 @@ ttdb() { # if you input imdbid it will create $rating_key, if you input rating_k
 	fi
 
 }
-echo "test"
