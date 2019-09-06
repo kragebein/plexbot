@@ -23,16 +23,16 @@ setflags() {
 	#anime="$()
 }
 accepted_lang(){
-	var="$(cat $config_path/../lang/cc.csv | awk -F ',' '{print $2}' |grep -w ${language^^})"
+	var="$(cat "$config_path/../lang/cc.csv" | awk -F ',' '{print $2}' |grep -w "${language^^}")"
 	if [ "$var" = "${language^^}" ]; then
-		linglang="$(cat $config_path/../cc.csv |grep -W ${language^^} | awk -F ',' '{print $1}')"
+		linglang="$(cat "$config_path/../cc.csv" |grep -W "${language^^}" | awk -F ',' '{print $1}')"
 		return 0
 	else
 		return 1
 	fi
 }
 check_request_flags(){
-	case ${language% *} in 
+	case "${language% *}" in 
 		l) 
 			language="${language##* }"
 			if ! accepted_lang; then
@@ -68,7 +68,7 @@ check_request_flags(){
 		nope=0
 		imdbid=$(echo "$JSON" |jq -r ".imdbID" 2>/dev/null)
 		show_title=$(echo "$JSON" |jq -r ".Title" 2>/dev/null)
-		thetvdb_id=$(ttdb $imdbid)
+		thetvdb_id=$(ttdb "$imdbid")
 		if [ "$thetvdb_id" = "" ]; then
 			say "$who :thetvdb api nede?";exit
 		fi
@@ -96,7 +96,7 @@ check_request_flags(){
 						status_change=$(curl -s "$sickrage/api/$s_key/?cmd=episode.setstatus&status=wanted&indexerid=$thetvdb_id&season=$season&episode=$episode");
 						result=$(echo "$status_change" |jq -r '.result')
 						case $result in
-							'failure') message=$(echo "$status_change" |jq -r '.message') say "$who :Episoden mangler, men kan ikke endre status: $message";exit;;
+							'failure') message=$(echo "$status_change" |jq -r '.message'); say "$who :Episoden mangler, men kan ikke endre status: $message";exit;;
 							'success') say "$who :Oops, episoden manglet. Den blir lagt til fortløpende.";exit;;
 							*) say "$who :Feil; missing_episode, sanity_check->episode_status->skipped->result;"; say "$who :$status_change";exit;;
 						esac;;
@@ -109,24 +109,24 @@ check_request_flags(){
 	imdb_look() {
 		rm /tmp/.sbuf 2>/dev/null
 		buffer=$(mktemp)
-		arg="$(echo $cmd |awk -F ".search " '{print $2}')"
+		arg="$(echo "$cmd" |awk -F ".search " '{print $2}')"
 		argw="$(echo -ne "$arg" | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')"
 		COUNTER=0
 		MULTICOUNT="0"
 		JSON="$(curl -s "$couchpotato/api/$sofa_api/search?q=$argw")"
 		echo "$JSON" >/drive/drive/.rtorrent/logs/json.log 2>/dev/null
-		hits="$(echo $JSON |grep -o "original_title" |wc -l)"
+		hits="$(echo "$JSON" |grep -o "original_title" |wc -l)"
 		say "$who :Filmer"
 		say "$who :-------------"
 		if [ "$hits" = "0" ]; then say "$who :Ingen treff på $arg";else :;fi
-		if [ "$hits" = "1" ]; then calc="1";else calc=`echo "$hits -1" |bc`;fi
-		while [  $COUNTER -lt $calc ]; do
-			title="$(echo $JSON |jq ".movies[$COUNTER].original_title" 2>/dev/null)"
-			imdb="$(echo $JSON |jq ".movies[$COUNTER].imdb" 2>/dev/null|sed 's/"//g')"
-			year="$(echo $JSON |jq ".movies[$COUNTER].year" 2>/dev/null|sed 's/"//g')"
-			rating="$(echo $JSON |jq ".movies[$COUNTER].rating.imdb[0]" 2>/dev/null)"
-			wanted="$(echo $JSON |jq ".movies[$COUNTER].in_wanted.status" 2>/dev/null |sed 's/"//g')"
-			library="$(echo $JSON | jq ".movies[$COUNTER].in_library.status" 2>/dev/null | sed 's/"//g')"
+		if [ "$hits" = "1" ]; then calc="1";else calc=$(echo "$hits -1" |bc);fi
+		while [ "$COUNTER" -lt "$calc" ]; do
+			title="$(echo "$JSON" |jq ".movies[$COUNTER].original_title" 2>/dev/null)"
+			imdb="$(echo "$JSON" |jq ".movies[$COUNTER].imdb" 2>/dev/null|sed 's/"//g')"
+			year="$(echo "$JSON" |jq ".movies[$COUNTER].year" 2>/dev/null|sed 's/"//g')"
+			rating="$(echo "$JSON" |jq ".movies[$COUNTER].rating.imdb[0]" 2>/dev/null)"
+			wanted="$(echo "$JSON" |jq ".movies[$COUNTER].in_wanted.status" 2>/dev/null |sed 's/"//g')"
+			library="$(echo "$JSON" | jq ".movies[$COUNTER].in_library.status" 2>/dev/null | sed 's/"//g')"
 			case $rating in
 				'') rating="0.0";;
 				' ') rating="0.0";;
@@ -150,7 +150,7 @@ check_request_flags(){
 				else
 					say "$who :$MULTICOUNT. $what2 - $title ($year)[$rating/10.0]"
 					say "$who : "
-					echo "$MULTICOUNT $imdb" >>$buffer
+					echo "$MULTICOUNT $imdb" >> "$buffer"
 				fi
 			fi
 			let COUNTER=COUNTER+1
@@ -165,12 +165,12 @@ check_request_flags(){
 		if [ "$count" = "0" ]; then
 			say "$who :Ingen treff på \"$arg\""
 		fi
-		while [ $COUNTER -lt $count ]; do
+		while [ "$COUNTER" -lt "$count" ]; do
 			nope=0
 			title=$(echo "$JSON" |jq -r ".Search[$COUNTER].Title" 2>/dev/null)
 			year=$(echo "$JSON" |jq -r ".Search[$COUNTER].Year" 2>/dev/null)
 			imdbid=$(echo "$JSON" |jq -r ".Search[$COUNTER].imdbID" 2>/dev/null)
-			thetvdb_id="$(ttdb $imdbid)"
+			thetvdb_id="$(ttdb "$imdbid")"
 			sanity=$(curl -s "$sickrage/api/$s_key/?cmd=show.cache&tvdbid=$thetvdb_id")
 			check=$(echo "$sanity" |jq -r '.result' 2>/dev/null)
 			case $check in
@@ -187,14 +187,14 @@ check_request_flags(){
 			if [ "$nope" = "0" ]; then
 				say "$who :$MULTICOUNT. $status - $title ($year)[$rating/10.0]"
 				say "$who : "
-				echo "$MULTICOUNT $imdbid" >>$buffer
+				echo "$MULTICOUNT $imdbid" >> "$buffer"
 			else
 				:
 			fi
 			let COUNTER=COUNTER+1
 			let MULTICOUNT=MULTICOUNT+1
 		done
-		mv $buffer /tmp/.sbuf
+		mv "$buffer" /tmp/.sbuf
 		exit
 	}
 	show_get_pluss() {
@@ -202,7 +202,7 @@ check_request_flags(){
 		:
 	}
 	show_get_id() {
-		thetvdb_id="$(ttdb $imdbid)"
+		thetvdb_id="$(ttdb "$imdbid")"
 		#echo "$imdbid"
 		#echo "$(curl -s "http://thetvdb.com/index.php?seriesname=&fieldlocation=4&language=7&genre=&year=&network=&zap2it_id=&tvcom_id=&imdb_id=$imdbid&order=translation&addedBy=&searching=Search&tab=advancedsearch")"
 		case $thetvdb_id in
@@ -277,8 +277,8 @@ check_request_flags(){
 		exit
 	}
 	tv_search() {
-		argw="`echo $* |awk -F ".tvsearch " '{print $2}'`"
-		input="`echo -ne "$argw" | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g'`"
+		argw="$(echo "$*" |awk -F ".tvsearch " '{print $2}')"
+		input="$(echo -ne "$argw" | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')"
 		JSON=$(curl -s "http://www.omdbapi.com/?s=$input&apikey=$o_key&type=series")
 		count=$(echo "$JSON" |jq '.Search' |grep "{" |wc -l)
 		COUNTER=0
@@ -287,12 +287,12 @@ check_request_flags(){
 		else
 			:
 		fi
-		while [ $COUNTER -lt $count ]; do
+		while [ "$COUNTER" -lt "$count" ]; do
 			nope=0
 			title=$(echo "$JSON" |jq -r ".Search[$COUNTER].Title" 2>/dev/null)
 			year=$(echo "$JSON" |jq -r ".Search[$COUNTER].Year" 2>/dev/null)
 			imdbid=$(echo "$JSON" |jq -r ".Search[$COUNTER].imdbID" 2>/dev/null)
-			thetvdb_id=$(ttdb $imdbid)
+			thetvdb_id=$(ttdb "$imdbid")
 			sanity=$(curl -s "$sickrage/api/$s_key/?cmd=show.cache&tvdbid=$thetvdb_id")
 			check=$(echo "$sanity" |jq -r '.result')
 			case $check in
@@ -311,19 +311,19 @@ check_request_flags(){
 	}
 	show_initiate() {
 		show_get_id
-		show_check_exist $thetvdb_id
-		show_add $lang $thetvdb_id 
+		show_check_exist "$thetvdb_id"
+		show_add "$lang" "$thetvdb_id"
 		exit
 	}
 	parse_imdb() {
 		xml="$(curl -s "http://www.omdbapi.com/?i=$imdbid&plot=short&r=json&apikey=$o_key")"
-		if [ "$(echo $xml)" = "The service is unavailable." ]; then echo "Nødvendig tredjepartstjeneste midlertidlig utilgjengelig. Prøv igjen senere."; exit 0; fi
-		respons="$(echo $xml |awk -F "Response\":" '{print $2}'|awk -F "\"" '{print $2}')"
+		if [ "$(echo "$xml")" = "The service is unavailable." ]; then echo "Nødvendig tredjepartstjeneste midlertidlig utilgjengelig. Prøv igjen senere."; exit 0; fi
+		respons="$(echo "$xml" |awk -F "Response\":" '{print $2}'|awk -F "\"" '{print $2}')"
 		if [ "$respons" = "True" ]; then :;else say "$who :Ingen film eller serie med denne IDen: $imdbid";exit 1;fi
-		imdb_title=$(echo $xml |awk -F "Title\":" '{print $2}' |awk -F "\"" '{print $2}' 2>/dev/null)
-		couch_title=$(echo $imdb_title | sed 's/ /+/g')
-		typ="$(echo $xml |awk -F "\"Type\":" '{print $2}' |awk -F "\"" '{print $2}')"
-		if [ "$typ" = "series" ]; then show_initiate $imdbid;exit;
+		imdb_title=$(echo "$xml" |awk -F "Title\":" '{print $2}' |awk -F "\"" '{print $2}' 2>/dev/null)
+		couch_title=$(echo "$imdb_title" | sed 's/ /+/g')
+		typ="$(echo "$xml" |awk -F "\"Type\":" '{print $2}' |awk -F "\"" '{print $2}')"
+		if [ "$typ" = "series" ]; then show_initiate "$imdbid";exit;
 		elif [ "$typ" = "movie" ]; then :;else say "$who :$imdb_title er ikke en film eller serie. Kun filmer og serier kan legges i ønskelisten.";exit 0
 		fi
 	}
@@ -357,7 +357,7 @@ check_request_flags(){
 			'done')
 				say "$who :Filmen \"$imdb_title\" fins allerede i Plex";exit 1;;
 			'active')
-				sleep 10s;cp_status="$(cat /tmp/webhook_$imdbid |grep "Snatched" |awk -F ".ø. " '{print $2}')"
+				sleep 10s;cp_status="$(cat "/tmp/webhook_$imdbid" |grep "Snatched" |awk -F ".ø. " '{print $2}')"
 				if [ "$cp_status" = "$imdbid" ]; then
 					say "$who :Filmen $imdb_title ($imdbid) ble funnet, henter ned.."
 				else
@@ -366,15 +366,15 @@ check_request_flags(){
 						say "$announce_channel :Filmen $imdb_title ($imdbid) er blitt lagt til ønskelisten."
 					fi
 
-					rm /tmp/cp_status_$imdbid 2>/dev/null
-					echo "$imdbid" > /tmp/.request.$imdbid
+					rm "/tmp/cp_status_$imdbid" 2>/dev/null
+					echo "$imdbid" > "/tmp/.request.$imdbid"
 				fi;;
 			*)
 				:
 		esac
 	}
 	wishlist(){
-		json=$(curl -s $couchpotato/api/$sofa_api/media.list/?status=active)
+		json=$(curl -s "$couchpotato/api/$sofa_api/media.list/?status=active")
 		TOT=$(echo "$json" |jq -r '.total')
 		CNT=0
 		buffer="$(mktemp)"
@@ -387,14 +387,14 @@ check_request_flags(){
 				if [ "$rating" = "0" ]; then rating="0.0"; fi
 				year=$(echo "$json" |jq -r ".movies[$i].info.year")
 				if [ "$rating" = "null" ]; then year="in";rating="development";fi
-				echo "$imdb - $title ($year) [$rating]" >> $buffer
+				echo "$imdb - $title ($year) [$rating]" >> "$buffer"
 			done
 			let CNT=CNT+1
 		done
 		while read line;do
 			say "$who :$line"
-		done < $buffer
-		rm $buffer
+		done < "$buffer"
+		rm "$buffer"
 		say "$who :Totalt $CNT filmer i listen"
 	}
 	imdb() {
@@ -425,7 +425,7 @@ check_request_flags(){
 				say "$RES :*Actors*: $actors"
 				say "$RES :*plot*: $plot";;
 			'movie'|'documentary'|'anime')
-				file="$(echo $meta |jq -r '.response.data.media_info[0].parts[0].file')"
+				file="$(echo "$meta" |jq -r '.response.data.media_info[0].parts[0].file')"
 				video_bit="$(echo "$meta" |jq -r '.response.data.media_info[0].parts[0].streams[0].video_bitrate')"
 				video_width="$(echo "$meta"  |jq -r '.response.data.media_info[0].parts[0].streams[0].video_width')"
 				video_height="$(echo "$meta"  |jq -r '.response.data.media_info[0].parts[0].streams[0].video_height')"
