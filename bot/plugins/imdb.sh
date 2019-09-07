@@ -10,7 +10,7 @@ id_key="$input"
 if [ "$id_key" = ".imdb" ]; then
 	id_key="$(cat $imdbidfile)"
 fi
-data="$(curl -s "http://www.omdbapi.com/?i=$id_key&apikey=$o_key&plot=full")"
+data="$(curl -s "http://www.omdbapi.com/?i=$id_key&apikey=$omdb_key&plot=full")"
 # general data
 title="$(echo "$data" | jq -r '.Title')"
 released="$(echo "$data" | jq -r '.Released')"
@@ -22,7 +22,7 @@ seasons="$(echo "$data" | jq -r '.totalSeasons')"
 _type="$(echo "$data" | jq -r '.Type')"
 runtime="$(echo "$data" | jq -r '.Runtime')"
 ratingkey="$(/drive/drive/.rtorrent/scripts/imdbconv.sh $id_key | awk -F ":" '{print $4}')"
-meta="$(curl -s "$plexpy/api/v2?apikey=$c_api&cmd=get_metadata&rating_key=$ratingkey")"
+meta="$(curl -s "$tt_hostname/api/v2?apikey=$tt_apikey&cmd=get_metadata&rating_key=$ratingkey")"
 echo "id_key=$id_key - $title"
 case $_type in
 	'series')

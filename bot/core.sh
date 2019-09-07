@@ -53,7 +53,7 @@ check_request_flags(){
 		input=$(echo -ne "$*" | awk -F ".missing" '{print $2}' | awk -F ' ' '{print $1}')
 		season=$(echo -ne "$*" | awk -F ".missing" '{print $2}' | awk -F ' ' '{print $2}')
 		episode=$(echo -ne "$*" | awk -F ".missing" '{print $2}' | awk -F ' ' '{print $3}')
-		JSON=$(curl -s "http://www.omdbapi.com/?i=$input&apikey=$o_key&type=series")
+		JSON=$(curl -s "http://www.omdbapi.com/?i=$input&apikey=$omdb_key&type=series")
 		response=$(echo "$JSON" |jq -r '.Response')
 		Type=$(echo "$JSON" |jq -r '.Type')
 		Name=$(echo "$JSON" |jq -r '.Title')
@@ -72,7 +72,7 @@ check_request_flags(){
 		if [ "$thetvdb_id" = "" ]; then
 			say "$who :thetvdb api nede?";exit
 		fi
-		sanity=$(curl -s "$sickrage/api/$s_key/?cmd=episode&indexerid=$thetvdb_id&season=$season&episode=$episode")
+		sanity=$(curl -s "$sr_hostname/api/$sr_apikey/?cmd=episode&indexerid=$thetvdb_id&season=$season&episode=$episode")
 		check=$(echo "$sanity" |jq -r '.result')
 		case $check in
 			'success')
@@ -80,10 +80,10 @@ check_request_flags(){
 				episode_name=$(echo "$sanity" |jq -r '.data.name')
 				case $episode_status in
 					'Downloaded') say "$who :$show_title - \"$episode_name\" fins allerede i systemet, men endrer likevel status på episoden. Blir lagt til pånytt.";exit;
-						curl -s "$sickrage/api/$s_key/?cmd=episode.setstatus&status=wanted&indexerid=$thetvdb_id&season=$season&episode=$episode";;
+						curl -s "$sr_hostname/api/$sr_apikey/?cmd=episode.setstatus&status=wanted&indexerid=$thetvdb_id&season=$season&episode=$episode";;
 					'Wanted')
 						echo "Søker etter $show_title - \"$episode_name\" .."
-						episode_search=$(curl -s  "$sickrage/api/$s_key/?cmd=episode.search&indexerid=$thetvdb_id&season=$season&episode=$episode")
+						episode_search=$(curl -s  "$sr_hostname/api/$sr_apikey/?cmd=episode.search&indexerid=$thetvdb_id&season=$season&episode=$episode")
 						result=$(echo "$episode_search" |jq -r '.result')
 						case $result in
 							'success') say "$who :Fant episode! Blir lagt til Plex snarest!";;
@@ -93,7 +93,7 @@ check_request_flags(){
 						esac;;
 					'Skipped'|'Ignored'|'Snatched')
 						say "$who :Søker etter $show_title - \"$episode_name\" .."
-						status_change=$(curl -s "$sickrage/api/$s_key/?cmd=episode.setstatus&status=wanted&indexerid=$thetvdb_id&season=$season&episode=$episode");
+						status_change=$(curl -s "$sr_hostname/api/$sr_apikey/?cmd=episode.setstatus&status=wanted&indexerid=$thetvdb_id&season=$season&episode=$episode");
 						result=$(echo "$status_change" |jq -r '.result')
 						case $result in
 							'failure') message=$(echo "$status_change" |jq -r '.message'); say "$who :Episoden mangler, men kan ikke endre status: $message";exit;;
@@ -113,7 +113,7 @@ check_request_flags(){
 		argw="$(echo -ne "$arg" | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')"
 		COUNTER=0
 		MULTICOUNT="0"
-		JSON="$(curl -s "$couchpotato/api/$sofa_api/search?q=$argw")"
+		JSON="$(curl -s "$cp_hostname/api/$cp_apikey/search?q=$argw")"
 		echo "$JSON" >/drive/drive/.rtorrent/logs/json.log 2>/dev/null
 		hits="$(echo "$JSON" |grep -o "original_title" |wc -l)"
 		say "$who :Filmer"
@@ -159,7 +159,7 @@ check_request_flags(){
 		say "$who :TV-serier"
 		say "$who :-------------"
 		input="$(echo -ne "$arg" | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')"
-		JSON=$(curl -s "http://www.omdbapi.com/?s=$input&apikey=$o_key&type=series")
+		JSON=$(curl -s "http://www.omdbapi.com/?s=$input&apikey=$omdb_key&type=series")
 		count=$(echo "$JSON" |jq '.Search' |grep "{" |wc -l)
 		COUNTER=0
 		if [ "$count" = "0" ]; then
@@ -171,14 +171,14 @@ check_request_flags(){
 			year=$(echo "$JSON" |jq -r ".Search[$COUNTER].Year" 2>/dev/null)
 			imdbid=$(echo "$JSON" |jq -r ".Search[$COUNTER].imdbID" 2>/dev/null)
 			thetvdb_id="$(ttdb "$imdbid")"
-			sanity=$(curl -s "$sickrage/api/$s_key/?cmd=show.cache&tvdbid=$thetvdb_id")
+			sanity=$(curl -s "$sr_hostname/api/$sr_apikey/?cmd=show.cache&tvdbid=$thetvdb_id")
 			check=$(echo "$sanity" |jq -r '.result' 2>/dev/null)
 			case $check in
 				'success') status="✔️$imdbid";;
 				'failure') status="➕$imdbid";;
 				'error') status="🚫$imdbid";;
 			esac
-			rating=$(curl -s "http://www.omdbapi.com/?i=$imdbid&apikey=$o_key&type=series" |jq -r '.imdbRating' 2>/dev/null)
+			rating=$(curl -s "http://www.omdbapi.com/?i=$imdbid&apikey=$omdb_key&type=series" |jq -r '.imdbRating' 2>/dev/null)
 			case $rating in
 				'') rating="0.0";;
 				' ') rating="0.0";;
@@ -212,7 +212,7 @@ check_request_flags(){
 		esac
 	}
 	show_check_exist_fail() { 
-		sanity=$(curl -s "$sickrage/api/$s_key/?cmd=show.cache&tvdbid=$thetvdb_id")
+		sanity=$(curl -s "$sr_hostname/api/$sr_apikey/?cmd=show.cache&tvdbid=$thetvdb_id")
 		check=$(echo "$sanity" |jq -r '.result')
 		case $check in
 			'failure') :;;
@@ -221,7 +221,7 @@ check_request_flags(){
 		esac
 	}
 	show_check_exist() {
-		sanity=$(curl -s "$sickrage/api/$s_key/?cmd=show.cache&tvdbid=$thetvdb_id")
+		sanity=$(curl -s "$sr_hostname/api/$sr_apikey/?cmd=show.cache&tvdbid=$thetvdb_id")
 		check=$(echo "$sanity" |jq -r '.result')
 		case $check in
 			'failure') :;;
@@ -250,7 +250,7 @@ check_request_flags(){
 		future_status="wanted"
 		season_folder="1"
 		anime="0" 
-		quality_check=$(curl -s "http://www.omdbapi.com/?i=$imdbid&apikey=$o_key&type=series" |jq -r '.Year')
+		quality_check=$(curl -s "http://www.omdbapi.com/?i=$imdbid&apikey=$omdb_key&type=series" |jq -r '.Year')
 		start_year=$(echo "$quality_check" |awk -F "–" '{print $1}')
 		if [ "$start_year" = "null" ]; then # we always want High def
 			#initial="sdtv|sddvd|hdtv|hdwebdl|hdbluray"
@@ -263,7 +263,7 @@ check_request_flags(){
 			fi
 		fi
 		location="$stage_area/$f/"
-		execute_add=$(curl -s "$sickrage/api/$s_key/?cmd=show.addnew&indexerid=$indexerid&status=$status&future_status=$future_status&season_folders=$season_folder&initial=${initial}&anime=$anime&location=$location&lang=$core_lang")
+		execute_add=$(curl -s "$sr_hostname/api/$sr_apikey/?cmd=show.addnew&indexerid=$indexerid&status=$status&future_status=$future_status&season_folders=$season_folder&initial=${initial}&anime=$anime&location=$location&lang=$core_lang")
 		execute_add_error=$(echo "$execute_add" |jq -r '.result')
 		case $execute_add_error in
 			'success')
@@ -279,7 +279,7 @@ check_request_flags(){
 	tv_search() {
 		argw="$(echo "$*" |awk -F ".tvsearch " '{print $2}')"
 		input="$(echo -ne "$argw" | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')"
-		JSON=$(curl -s "http://www.omdbapi.com/?s=$input&apikey=$o_key&type=series")
+		JSON=$(curl -s "http://www.omdbapi.com/?s=$input&apikey=$omdb_key&type=series")
 		count=$(echo "$JSON" |jq '.Search' |grep "{" |wc -l)
 		COUNTER=0
 		if [ "$count" = "0" ]; then
@@ -293,14 +293,14 @@ check_request_flags(){
 			year=$(echo "$JSON" |jq -r ".Search[$COUNTER].Year" 2>/dev/null)
 			imdbid=$(echo "$JSON" |jq -r ".Search[$COUNTER].imdbID" 2>/dev/null)
 			thetvdb_id=$(ttdb "$imdbid")
-			sanity=$(curl -s "$sickrage/api/$s_key/?cmd=show.cache&tvdbid=$thetvdb_id")
+			sanity=$(curl -s "$sr_hostname/api/$sr_apikey/?cmd=show.cache&tvdbid=$thetvdb_id")
 			check=$(echo "$sanity" |jq -r '.result')
 			case $check in
 				'success') status="I plex";;
 				'failure') status="$imdbid";;
 				'error') say "$who :$imdbid - $title ($year) [$rating/10.0]";say "$who :Fins ikke på thetvdb👆";exit;;
 			esac
-			rating=$(curl -s "http://www.omdbapi.com/?i=$imdbid&apikey=$o_key&type=series" |jq -r '.imdbRating') 
+			rating=$(curl -s "http://www.omdbapi.com/?i=$imdbid&apikey=$omdb_key&type=series" |jq -r '.imdbRating') 
 			if [ "$nope" = "0" ]; then
 				say "$who :$status - $title ($year)[$rating/10.0]"
 				say "$who : "
@@ -316,7 +316,7 @@ check_request_flags(){
 		exit
 	}
 	parse_imdb() {
-		xml="$(curl -s "http://www.omdbapi.com/?i=$imdbid&plot=short&r=json&apikey=$o_key")"
+		xml="$(curl -s "http://www.omdbapi.com/?i=$imdbid&plot=short&r=json&apikey=$omdb_key")"
 		if [ "$(echo "$xml")" = "The service is unavailable." ]; then echo "Nødvendig tredjepartstjeneste midlertidlig utilgjengelig. Prøv igjen senere."; exit 0; fi
 		respons="$(echo "$xml" |awk -F "Response\":" '{print $2}'|awk -F "\"" '{print $2}')"
 		if [ "$respons" = "True" ]; then :;else say "$who :Ingen film eller serie med denne IDen: $imdbid";exit 1;fi
@@ -329,7 +329,7 @@ check_request_flags(){
 	}
 	check_exist() {
 		#say "$who :Film requests ute av drift for øyeblikket";exit
-		exists="$(curl -s "$couchpotato/api/$sofa_api/media.get/?id=$imdbid")"
+		exists="$(curl -s "$cp_hostname/api/$cp_apikey/media.get/?id=$imdbid")"
 		check=$(echo "$exists" |awk -F '{\"status\": ' '{print $2}' |awk -F "\"" '{print $2}')
 		case $check in
 			'active')
@@ -342,14 +342,14 @@ check_request_flags(){
 	}
 	parse_sofa() {
 		check_exist
-		year=$(curl -s curl -s "http://www.omdbapi.com/?i=$imdbid&plot=short&r=json&apikey=$o_key" |jq -r '.Year')
+		year=$(curl -s curl -s "http://www.omdbapi.com/?i=$imdbid&plot=short&r=json&apikey=$omdb_key" |jq -r '.Year')
 		initial="32be391d247b4af2acab4fce07bd7c02" # set default
 		if [ "$year" -le "2006" ]; then
 			initial="32be391d247b4af2acab4fce07bd7c02" #HD
 		elif [ "$year" -le "2002" ]; then
 			initial="7634dd8abcf14a5a90eef7ad1aba098d" #SD
 		fi
-		xml="$(curl -s "$couchpotato/api/$sofa_api/movie.add/?force_readd=false&title=$couch_title&identifier=$imdbid&profile_id=$initial")"
+		xml="$(curl -s "$cp_hostname/api/$cp_apikey/movie.add/?force_readd=false&title=$couch_title&identifier=$imdbid&profile_id=$initial")"
 		response="$(echo $xml |awk -F "\"success\": " '{print $2}' |awk -F '}' '{print $1}')"
 		if [ "$response" = "true" ]; then :;else say "$who :Kunne ikke parse JSON, se debuglog.\n$xml";echo -e "$xml\n$imdbid\n$couch_title" > logs/updater.logdgb;exit 1; fi
 		status="$(echo $xml |awk -F '{\"status\": ' '{print $2}' |awk -F "\"" '{print $2}')"
@@ -374,7 +374,7 @@ check_request_flags(){
 		esac
 	}
 	wishlist(){
-		json=$(curl -s "$couchpotato/api/$sofa_api/media.list/?status=active")
+		json=$(curl -s "$cp_hostname/api/$cp_apikey/media.list/?status=active")
 		TOT=$(echo "$json" |jq -r '.total')
 		CNT=0
 		buffer="$(mktemp)"
@@ -402,7 +402,7 @@ check_request_flags(){
 		if [ "$id_key" = "" ]; then
 			id_key="$(cat /tmp/.lastadd)"
 		fi
-		data="$(curl -s "http://www.omdbapi.com/?i=$id_key&apikey=$o_key&plot=full")"
+		data="$(curl -s "http://www.omdbapi.com/?i=$id_key&apikey=$omdb_key&plot=full")"
 		if [ "$2" = "-r" ]; then
 			echo "$data"
 			exit
@@ -417,7 +417,7 @@ check_request_flags(){
 		_type="$(echo "$data" | jq -r '.Type')"
 		runtime="$(echo "$data" | jq -r '.Runtime')"
 		ratingkey="$(/drive/drive/.rtorrent/scripts/imdbconv.sh $id_key | awk -F ":" '{print $4}')"
-		meta="$(curl -s "$plexpy/api/v2?apikey=$c_api&cmd=get_metadata&rating_key=$ratingkey")"
+		meta="$(curl -s "$tt_hostname/api/v2?apikey=$tt_apikey&cmd=get_metadata&rating_key=$ratingkey")"
 		case $_type in
 			'series')
 				say "$RES :*$title*, released $released ($rating)."

@@ -19,7 +19,7 @@ log_verbosity="1" #1-5. 5 is output everything, 1 is only errors.
 # default language, en, jp, np, ru, de, se, dk, us
 default_request_language="en" 
 # sickrage/medusa
-sr_hostname="$sickrage"
+sr_hostname="$sr_hostname"
 sr_port=""
 sr_apikey="" #API KEY HERE
 sr_quality_new="hdtv|fullhdtv|hdwebdl|fullhdwebdl|hdbluray|fullhdbluray"
@@ -33,7 +33,7 @@ cp_quality_old="7634dd8abcf14a5a90eef7ad1aba098d" #SD
 cp_quality_new="32be391d247b4af2acab4fce07bd7c02" #HD 
 cp_quality_year="2006" # SD below this year, HD above.
 # Tautulli (previously plexpy)
-tt_hostname="$plexpy"
+tt_hostname="$tt_hostname"
 tt_port=""
 tt_apikey="" # Tautulli api key
 # Plex

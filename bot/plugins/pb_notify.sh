@@ -41,7 +41,7 @@ if [ "$imdbid" = "null" ]; then
 fi
 
 count=$(myq "plexbot SELECT count(*) FROM  notify WHERE imdbid='$imdbid' AND who='$who'")
-data=$(curl -s "http://www.omdbapi.com/?i=$imdbid&apikey=$o_key")
+data=$(curl -s "http://www.omdbapi.com/?i=$imdbid&apikey=$omdb_key")
 make=$(echo "$data" |jq -r '.Type')
 if [ "$make" = "null" ]; then
 	if [ "$2" = ".notify" ]; then

@@ -30,7 +30,7 @@ case "$type" in
 			sql3 "DELETE from content WHERE imdbid='$imdbid'"
 		done
 		ttdb "$imdbid" # this creates $rating_key
-		curl -s "$sickrage/api/$s_key/?cmd=show.delete&tvdbid=$rating_key"
+		curl -s "$sr_hostname/api/$sr_apikey/?cmd=show.delete&tvdbid=$rating_key"
 		say "$who :Title og dens ${#array[@]} episoda e fjerna fra Plex."
 	else
 
@@ -49,7 +49,7 @@ case "$type" in
 'movie')
 	if [ "$who_orig" = "$sqlwho" ]; then
 		#This is the second run, go ahead and delete this.
-		case "$(curl -s "$couchpotato/api/$sofa_api/media.get/?id=$imdbid" | jq -r '.media.status')" in
+		case "$(curl -s "$cp_hostname/api/$cp_apikey/media.get/?id=$imdbid" | jq -r '.media.status')" in
 		'active')
 			say "$who :Filmen lå kun i wishlist. Fjerna den derfra."
 			;;

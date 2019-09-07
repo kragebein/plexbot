@@ -33,7 +33,7 @@ remote_collect() { #Streamline the network collection.
 	fi
 }
 collect() {
-	lastadd_json=$(curl -s "$plexpy/api/v2?apikey=$c_api&cmd=get_recently_added&count=1")
+	lastadd_json=$(curl -s "$tt_hostname/api/v2?apikey=$tt_apikey&cmd=get_recently_added&count=1")
 	lastadd=$(echo "$lastadd_json" | jq -r '.response.data.recently_added[0].parent_title')
 	case "$lastadd" in
 	'')
@@ -57,7 +57,7 @@ collect() {
 	if [ "$seconds" -le "60" ]; then timesince="$seconds sekunder siden"; fi
 	if [ "$minutes" -le "60" ]; then timesince="$minutes minutter siden"; fi
 	if [ "$hours" -ge "1" ]; then timesince="~$hours timer siden"; fi
-	activity=$(curl -s "$plexpy/api/v2?apikey=$c_api&cmd=get_activity")
+	activity=$(curl -s "$tt_hostname/api/v2?apikey=$tt_apikey&cmd=get_activity")
 	stream_count=$(echo "$activity" | jq -r '.response.data.stream_count')
 	# f.eks $lastadd ble lagt til for $timesince
 	playtime="$(/drive/drive/.rtorrent/scripts/total_playtime.sh)"

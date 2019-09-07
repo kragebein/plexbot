@@ -21,9 +21,9 @@ function add_this() {
 		'title')
 			echo "$year"
 			if [ "$year" = "" ]; then
-				json="$(curl -s "http://www.omdbapi.com/?s=$(echo -ne "$_this" | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')&apikey=$o_key&plot=full")"
+				json="$(curl -s "http://www.omdbapi.com/?s=$(echo -ne "$_this" | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')&apikey=$omdb_key&plot=full")"
 			else
-				json="$(curl -s "http://www.omdbapi.com/?s=$(echo -ne "$_this" | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')&y=$year&apikey=$o_key&plot=full")"
+				json="$(curl -s "http://www.omdbapi.com/?s=$(echo -ne "$_this" | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')&y=$year&apikey=$omdb_key&plot=full")"
 			fi
 			results="$(echo $json |jq -r ".totalResults")"
 			rm /tmp/.sbuf

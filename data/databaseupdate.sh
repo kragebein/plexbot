@@ -68,7 +68,7 @@ update_sqlite3() {
 	COUNTER=0
 	while [ "$COUNTER" -le "$num" ]; do
 		rating_key="$(echo "$JSON" | jq -r ".response.data.data[$COUNTER].rating_key" 2>/dev/null)"
-		metadata="$(curl -s "http://cr.wack:8181/api/v2?apikey=$c_api&cmd=get_metadata&rating_key=$rating_key")"
+		metadata="$(curl -s "http://cr.wack:8181/api/v2?apikey=$tt_apikey&cmd=get_metadata&rating_key=$rating_key")"
 		imdb="$(echo "$metadata" | jq -r ".response.data.guid" 2>/dev/null)"
 		imdb_rating="$(echo "$metadata" | jq -r '.response.data.rating' 2>/dev/null)"
 		imdb=${imdb##*//}

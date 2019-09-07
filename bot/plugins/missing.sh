@@ -13,7 +13,7 @@ eps="${input#*$imdbid }"
 season="${eps% *}"
 episode="${eps#* }"
 # First we check imdb if the show actually exists
-JSON=$(curl -s "http://www.omdbapi.com/?i=$imdbid&apikey=$o_key&type=series")
+JSON=$(curl -s "http://www.omdbapi.com/?i=$imdbid&apikey=$omdb_key&type=series")
 title="$(echo "$JSON" |jq -r '.Title')"
 if [ "$(echo "$JSON" |jq -r '.Response')" = "False" ]; then
 	say "$who :Feil i imdb-id";exit
@@ -32,7 +32,7 @@ fi
 # while sickrage will check if the episode at some point has been downloaded. 
 
 thetvdb_id="$(ttdb "$imdbid")"
-json="$(curl -s "$sickrage/api/$s_key/?cmd=episode&indexerid=$thetvdb_id&season=$season&episode=$episode")"
+json="$(curl -s "$sr_hostname/api/$sr_apikey/?cmd=episode&indexerid=$thetvdb_id&season=$season&episode=$episode")"
 echo "$json";exit
 check=$(echo "$json" |jq -r '.result')
 case "$check" in
@@ -43,11 +43,11 @@ case "$check" in
 		case $episode_status in
 			'Downloaded'|'Archived')
 				say "$who :$show_title - \"$episode_name\" fins allerede i systemet, men endrer likevel status på episoden. Blir lagt til pånytt."
-				curl -s "$sickrage/api/$s_key/?cmd=episode.setstatus&status=wanted&indexerid=$thetvdb_id&season=$season&episode=$episode&force=1"
+				curl -s "$sr_hostname/api/$sr_apikey/?cmd=episode.setstatus&status=wanted&indexerid=$thetvdb_id&season=$season&episode=$episode&force=1"
 				;;
 			'Wanted')
-				episode_search=$(curl -s  "$sickrage/api/$s_key/?cmd=episode.search&indexerid=$thetvdb_id&season=$season&episode=$episode")
-				echo "$sickrage/api/$s_key/?cmd=episode.search&indexerid=$thetvdb_id&season=$season&episode=$episode"
+				episode_search=$(curl -s  "$sr_hostname/api/$sr_apikey/?cmd=episode.search&indexerid=$thetvdb_id&season=$season&episode=$episode")
+				echo "$sr_hostname/api/$sr_apikey/?cmd=episode.search&indexerid=$thetvdb_id&season=$season&episode=$episode"
 
 				case "$(echo "$episode_search" |jq -r '.result')" in
 					'success') say "$who :Fant episode! Blir lagt til Plex snarest!";;
@@ -58,7 +58,7 @@ case "$check" in
 
 			'Skipped'|'Ignored'|'Snatched')
 				say "$who :Søker etter $show_title - \"$episode_name\" .."
-				status_change=$(curl -s "$sickrage/api/$s_key/?cmd=episode.setstatus&status=wanted&indexerid=$thetvdb_id&season=$season&episode=$episode&force=1")
+				status_change=$(curl -s "$sr_hostname/api/$sr_apikey/?cmd=episode.setstatus&status=wanted&indexerid=$thetvdb_id&season=$season&episode=$episode&force=1")
 
 				case "$(echo "$status_change" |jq -r '.result')" in
 					'failure') say "$who :Episoden mangler, men kan ikke endre status";exit;;

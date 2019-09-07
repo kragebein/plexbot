@@ -8,8 +8,8 @@
 #      REVISION:  ---
 #===============================================================================
 pb="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )" 
-source $pb/../../master.sh # master.sh innehold endel keys som fortsatt trengs.
-source $pb/functions.sh # TODO: erstatt master.sh 
+#cd source "$pb/../../master.sh" # master.sh innehold endel keys som fortsatt trengs.
+source "$pb/functions.sh" # TODO: erstatt master.sh 
 _script="plexbot_commands"
 while getopts "u:c:m:" flag; do case $flag in u) who="$OPTARG";who_orig="$OPTARG";; c) channel="$OPTARG";; m) cmd="${OPTARG/\'/\\\'}";;esac;done
 if [ "$channel" != "" ]; then who="$channel";fi 
@@ -17,10 +17,10 @@ if [ "$bot_active" = "no" ]; then
 	exit
 fi
 # Dynamic plugin loader. (reloadconfig will reload plugin array)
-source $pb/plugins/.loaded
+source "$pb/plugins/.loaded"
 for i in "${!plug[@]}"; do
 	if [[ "$cmd" =~ ${plug[$i]} ]]; then
-		load $i
+		load "$i"
 	fi
 done
 # CORE FUNCTIONS - These will only load the core when triggered. 
@@ -30,14 +30,14 @@ if [[ "$cmd" =~ ^reloadconfig ]]; then
 fi
 if [[ "$cmd" =~ ^[.]request ]]; then 
 	uac
-	load $pb/core.sh
+	load "$pb/core.sh"
 	cmd="${cmd//.request /}"
-	setflags;check_request_flags $cmd;echo "$cmd";check_input;parse_imdb;parse_sofa
+	setflags;check_request_flags "$cmd";echo "$cmd";check_input;parse_imdb;parse_sofa
 fi
 if [[ "$cmd" =~ ^[.]search ]]; then
 	uac
-	load $pb/core.sh
-	imdb_look ${cmd//.search /}
+	load "$pb/core.sh"
+	imdb_look "${cmd//.search /}"
 fi
 
 if [[ "$cmd" =~ ^showplugins ]]; then
@@ -49,10 +49,10 @@ if [[ "$cmd" =~ ^showplugins ]]; then
 fi
 if [[ "$cmd" =~ ^help ]]; then    
 	uac
-	IFS=$'\n'; for i in $(cat $pb/../help/users.text); do say "$who : $i";done
+	IFS=$'\n'; for i in $(cat "$pb/../help/users.text"); do say "$who : $i";done
 	DEBUG=yes req_admin 
 	if [ "$bot_admin" = "y" ]; then
-		IFS=$'\n'; for i in $(cat $pb/../help/admin.text); do say "$who :$i";done
+		IFS=$'\n'; for i in $(cat "$pb/../help/admin.text"); do say "$who :$i";done
 	fi
 fi
 

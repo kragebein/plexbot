@@ -23,7 +23,7 @@ regex="^[.]wishlist"
 #
 input="${cmd#*.wishlist}"
 
-json=$(curl -s $couchpotato/api/$sofa_api/media.list/?status=active)
+json=$(curl -s $cp_hostname/api/$cp_apikey/media.list/?status=active)
 TOT=$(echo "$json" |jq -r '.total')
 CNT=0
 buffer="$(mktemp)"
