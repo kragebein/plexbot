@@ -7,7 +7,7 @@ source /drive/drive/.rtorrent/scripts/v3/bot/functions.sh
 notify() {
 	if [ "$otitle" != "null" ]; then
 		if [ "$title" = "$otitle" ]; then 
-			for i in $( myq "plexbot SELECT who FROM notify WHERE imdbid='$imdbid';"); do
+			for i in $( sql "SELECT who FROM notify WHERE imdbid='$imdbid';"); do
 				if [ "$genre" = "tv" ]; then
 					say "$i :Hei, ny episode av $title (${season}x${episode}) e tilgjengelig på plex no"
 				else

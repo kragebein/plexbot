@@ -1,5 +1,6 @@
 declare -A plug
 plug=(
+[/drive/drive/.rtorrent/scripts/v3/bot/plugins/calendar.sh]="^[.]calendar"
 [/drive/drive/.rtorrent/scripts/v3/bot/plugins/delete.sh]="^!delete"
 [/drive/drive/.rtorrent/scripts/v3/bot/plugins/gameoftag.sh]="^[.]tag"
 [/drive/drive/.rtorrent/scripts/v3/bot/plugins/imdbadd.sh]="^(https?\:\/\/)?(www\.)?imdb\.com\/.+$"

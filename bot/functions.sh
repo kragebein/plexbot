@@ -7,44 +7,44 @@ _script="functions.sh"
 DTG=$(echo "[$(date +%d-%m-%y) $(date +%H:%M:%S)]")
 log() {
 	# Log v3
-	if ! [ -w "$log_path/$_script" ]; then
-		echo "ERROR, incorrect permissions in log_path ($log_path/$_script), cannot write to it!!"
-		echo "Check permissions or edit config.cfg"
+#	if ! [ -w "$log_path/$_script" ]; then
+#		echo "ERROR, incorrect permissions in log_path ($log_path/$_script), cannot write to it!!"
+#		echo "Check permissions or edit config.cfg"
 		#        exit 1
-	fi
+#	fi
 	message=$(echo ${*##log $1} | awk -F "^$1 " '{print $2}')
 	case $1 in
 		'NOT'|'not'|'n')
 			echo "$DTG [notification]: $message" >> $log_path/${_script%%.*}.log
 			echo "$DTG [notification/${_script%%.*}]: $message" >> $log_path/plexbot.log
-			echo "$message"
+			echo "$message" >&2
 			;;
 		'WRN'|'wrn'|'w')
 			echo "$DTG [warning]: $message" >> $log_path/${_script%%.*}.log
 			echo "$DTG [warning/${_script%%.*}]: $message" >> $log_path/plexbot.log
-			echo "[warning] $message"
+			echo "[warning] $message" >&2
 			#syslog "[$0 - warning] - $message"
 			;;
 		'err'|'ERR'|'e')
 			echo "$DTG [error]: $message" >> $log_path/${_script%%.*}.log
 			echo "$DTG [error/${_script%%.*}]: $message" >> $log_path/plexbot.log
-			echo "[ERROR] $message"
+			echo "[ERROR] $message" >&2
 			#                       syslog "[$0 - error] $message"
-			echo "Unrecoverable, exiting."
+			echo "Unrecoverable, exiting." >&2
 			say "#log :$_script: $message"
 			exit 1
 			;;
 		'say'|'SAY'|'s')
 			echo "$DTG [saying]: $message" >> $log_path/${_script%%.*}.log
 			echo "$DTG [saying/${_script%%.*}]: $message" >> $log_path/plexbot.log
-			echo "[saying] $message"
+			echo "[saying] $message" >&2
 			#                       syslog "[$0 - warning] $message"
 			say "#log :$message"
 			;;
 		*)      message="$*"
 			echo "$DTG [undef]: $message" >> $log_path/${_script%%.*}.log
 			echo "$DTG [undef/${_script%%.*}]: $message" >> $log_path/plexbot.log
-			echo "[undef]: $message"
+			echo "[undef]: $message" >&2
 	esac
 }
 load() { #note to self, log before load.
@@ -54,7 +54,7 @@ load() { #note to self, log before load.
 	fi
 }
 load "${pb%/*}/proto/$proto.sh"		#load protocol
-load "${pb%/*}/db/$db.sh"			#load database
+load "${pb%/*}/db/sql.sh"			#load database
 
 uac() {
 	# user access control

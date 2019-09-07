@@ -20,7 +20,9 @@ source /drive/drive/.rtorrent/scripts/master.sh
 _script="db_oracle.sh"
 block() {
 	oracle_login
-	cat ../q/search.sql | sed "s/%query%/$input/g"
+	echo "$*"
+	echo "."
+	echo "/"
 }
 
 

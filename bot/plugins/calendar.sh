@@ -13,7 +13,7 @@
 source /drive/drive/.rtorrent/scripts/v3/bot/functions.sh
 who="$who" cmd="${cmd#.calendar *}" channel="$channel"
 _script="calendar.sh"
-#regex="^[.]calendar"
+regex="^[.]calendar"
 uac
 
 _vars() { 
@@ -25,15 +25,15 @@ _vars() {
 
 todays_event() {
 	IFS=$'\n'
-	for i in $(myq "plexbot SELECT id FROM calendar WHERE dato like '$(date +%d-%m)%';"); do
-		dato="$(myq "plexbot SELECT dato FROM calendar WHERE id='$i';")"
-		navn="$(myq "plexbot SELECT navn from calendar WHERE id='$i';")"
-		event="$(myq "plexbot SELECT event from calendar WHERE id='$i';")"
-		repeat="$(myq "plexbot SELECT gjentakende from calendar WHERE id='$i';")"
+	for i in $(sql "SELECT id FROM calendar WHERE dato like '$(date +%d-%m)%';"); do
+		dato="$(sql "SELECT dato FROM calendar WHERE id='$i';")"
+		navn="$(sql "SELECT navn from calendar WHERE id='$i';")"
+		event="$(sql "SELECT event from calendar WHERE id='$i';")"
+		repeat="$(sql "SELECT gjentakende from calendar WHERE id='$i';")"
 		_vars
 		say "$announce_channel :I dag skjer det folkens! $navn $event"
 		if [ "$repeat" = "no" ]; then
-			myq "plexbot DELETE from calendar WHERE id='$i'" 
+			sql "DELETE from calendar WHERE id='$i'" 
 			log n "deleting non-recurring event ($event) from db"
 		fi
 	done 
@@ -42,10 +42,10 @@ todays_event() {
 }
 14days_event() {
 	IFS=$'\n'
-	for i in $(myq "plexbot SELECT id FROM calendar WHERE dato like '$(date --date="14 days" +"%d-%m")%';"); do
-		dato="$(myq "plexbot SELECT dato FROM calendar WHERE id='$i';")"
-		navn="$(myq "plexbot SELECT navn from calendar WHERE id='$i';")"
-		event="$(myq "plexbot SELECT event from calendar WHERE id='$i';")"
+	for i in $(sql "SELECT id FROM calendar WHERE dato like '$(date --date="14 days" +"%d-%m")%';"); do
+		dato="$(sql "SELECT dato FROM calendar WHERE id='$i';")"
+		navn="$(sql "SELECT navn from calendar WHERE id='$i';")"
+		event="$(sql "SELECT event from calendar WHERE id='$i';")"
 		_vars
 		say "$announce_channel :Om 2 uke: $navn $event"
 	done
@@ -54,17 +54,17 @@ todays_event() {
 
 30days_event() {
 	IFS=$'\n'                                                               
-	for i in $(myq "plexbot SELECT id FROM calendar WHERE dato like '$(date --date="1 month" +"%d-%m")%';"); do
-		dato="$(myq "plexbot SELECT dato FROM calendar WHERE id='$i';")"
-		navn="$(myq "plexbot SELECT navn from calendar WHERE id='$i';")"
-		event="$(myq "plexbot SELECT event from calendar WHERE id='$i';")"
+	for i in $(sql "SELECT id FROM calendar WHERE dato like '$(date --date="1 month" +"%d-%m")%';"); do
+		dato="$(sql "SELECT dato FROM calendar WHERE id='$i';")"
+		navn="$(sql "SELECT navn from calendar WHERE id='$i';")"
+		event="$(sql "SELECT event from calendar WHERE id='$i';")"
 		_vars 
 		say "$announce_channel :Om 30 daga: $navn $event"
 	done
 }
 _get_id() {
 	mkbuf="$(mktemp)"
-	myq "plexbot SELECT id FROM calendar;" > $mkbuf
+	sql "SELECT id FROM calendar;" > $mkbuf
 	available() {
 		if [ "$rand"  = "" ]; then 
 			check
@@ -86,57 +86,68 @@ _get_id() {
 	check
 	rm $mkbuf
 }
-
-case ${cmd%% *} in 
+# Its its better if we array this and name the string
+input=($cmd)
+case "${input[1]}" in
+    '-r' )
+        calendar_date="${input[2]}"
+        first_name="${input[3]}"
+        last_name="${input[4]}"
+        event=""
+		req="yes"
+		stat="Et gjentakanes event"
+        for i in {5..15}; do
+            event+="${input[$i]} "
+        done ;;
+     *)
+        calendar_date="${input[1]}"
+        first_name="${input[2]}"
+        last_name="${input[3]}"
+        event=""
+		req="no"
+		stat="Et engangsevent"
+        for i in {4..15}; do
+            event+="${input[$i]} "
+        done 
+esac
+case ${input[0]} in 
 	'add') 
-	input=""
-		if [ "$3" = "-r" ]; then #fløtt alt ett hakk tell høyre
-			if ! date -d "$(echo "$4" | sed s',\.,/,g' | sed s',-,/,g' |awk -F "/" '{print  $2 "/"  $1 "/" $3}')" > /dev/null 2>&1 ; then
+			if ! date -d "$(echo "$calendar_date" | sed s',\.,/,g' | sed s',-,/,g' |awk -F "/" '{print  $2 "/"  $1 "/" $3}')" > /dev/null 2>&1 ; then
 				say "$who :wtf datoformat. 12-12-18 e f.eks okei, $4 e ikke okei. ";exit
 			fi
-			dato="$(echo "$4" | sed s',\.,/,g' | sed s',-,/,g' |awk -F "/" '{print  $1 "-"  $2 "-" $3}')"
+			dato="$(echo "$calendar_date" | sed s',\.,/,g' | sed s',-,/,g' |awk -F "/" '{print  $1 "-"  $2 "-" $3}')"
 			req=yes
-			navn="$5 $6"
-			event="$(echo "$*" |awk -F "$6" '{print $2}')"
-			stat="Et gjentakanes event"
-		else
-			if ! date -d "$(echo "$3" | sed s',\.,/,g' | sed s',-,/,g' |awk -F "/" '{print  $2 "/"  $1 "/" $3}')" > /dev/null 2>&1 ; then
-				say "$who :wtf datoformat. 12-12-18 e f.eks okei, $3 e ikke okei. ";exit
-			fi
-			dato="$(echo "$3" | sed s',\.,/,g' | sed s',-,/,g' |awk -F "/" '{print  $1 "-"  $2 "-" $3}')"
-			req=no
-			event="$(echo "$*" |awk -F "$5" '{print $2}')"
-			navn="$4 $5"
-			stat="Et engangsevent"
-		fi
+			navn="$first_name $last_name"
+			
+				
 		_id="$(_get_id)"
-		myq "plexbot INSERT INTO calendar VALUES('$_id','$dato', '$navn', '$event', '$req');"
+		sql "INSERT INTO calendar VALUES('$_id','$dato', '$navn', '$event', '$req');"
 		say "$who :$stat vart lagt tell i kalenderen. (#$_id)"
 		log n "$dato $navn $event added to calendar"
 
 		exit
 		;;
 	'delete'|'del')
-		if [ "$(myq "plexbot select id from calendar where id='$3';")" != "$3" ] ; then
-			say "$who :fant ikke ei oppføring med id #$3, bruk .kalender list førr komplett lista over kalenderoppføringe."
+		if [ "$(sql "select id from calendar where id='${input[1]}';")" != "${input[1]}" ] ; then
+			say "$who :fant ikke ei oppføring med id #${input[1]}, bruk .kalender list førr komplett lista over kalenderoppføringe."
 		else
-			myq "plexbot delete from calendar where id='$3';"
-			say "$who :Sletta kalenderoppføring med id #$3"
-			log n "deleted #$3 from db"
+			sql "delete from calendar where id='${input[1]}';"
+			say "$who :Sletta kalenderoppføring med id #${input[1]}"
+			log n "deleted #${input[1]} from db"
 		fi
 		exit
 		;;
 	'list')
 		IFS=$'\n'
-		for i in $(myq "plexbot SELECT ID,dato,navn,event FROM calendar";); do
+		for i in $(sql "SELECT ID,dato,navn,event FROM calendar";); do
 			say "$who :$i"
 		done
 		exit
 		;;
 	*)
-		if [ "$1" = ".kalender" ]; then
-			exit #stopp kjøring fra chatten
-		fi;;
+		#if [ "${input[0]}" = ".calendar" ]; then
+		#	exit #stopp kjøring fra chatten
+		#fi;;
 esac
 
 # kun daglig cron får kom hit
