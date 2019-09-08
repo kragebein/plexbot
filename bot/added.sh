@@ -7,7 +7,7 @@ source /drive/drive/.rtorrent/scripts/v3/bot/functions.sh
 notify() {
 	if [ "$otitle" != "null" ]; then
 		if [ "$title" = "$otitle" ]; then 
-			for i in $( sql "SELECT who FROM notify WHERE imdbid='$imdbid';"); do
+			for i in $(sql "SELECT who FROM notify WHERE imdbid='$imdbid';"); do
 				if [ "$genre" = "tv" ]; then
 					say "$i :Hei, ny episode av $title (${season}x${episode}) e tilgjengelig på plex no"
 				else
@@ -22,14 +22,14 @@ to_db() {
 	rating_key="$key"
 	case "$db" in
 		'sqlite3')
-		query="$(sql3 "SELECT rating_key FROM content WHERE rating_key='$rating_key'")"
+		query="$(sql "SELECT rating_key FROM content WHERE rating_key='$rating_key'")"
 			if [ "$query" != "$rating_key" ]; then
 				#Insert into database.
 				case "$genre" in
 				'movie')
-				sql3 "INSERT INTO content (type, imdbid, rating_key, filepath) VALUES ('movie', '$imdbid', '$rating_key', '$path')";;
+				sql "INSERT INTO content (type, imdbid, rating_key, filepath) VALUES ('movie', '$imdbid', '$rating_key', '$path')";;
 				'tv')
-				sql3 "INSERT INTO content (type, imdbid, grandparent_rating_key, rating_key, season, episode, filepath) VALUES ('show', '$imdbid', '$grandparent_rating_key', '$rating_key', '$season', '$episode', '$path')";;
+				sql "INSERT INTO content (type, imdbid, grandparent_rating_key, rating_key, season, episode, filepath) VALUES ('show', '$imdbid', '$grandparent_rating_key', '$rating_key', '$season', '$episode', '$path')";;
 				esac
 			fi ;;
 		'oracle')

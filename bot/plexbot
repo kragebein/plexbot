@@ -4,5 +4,5 @@ if [ "$1" = "" ]; then
 else
 	cmd="$*"
 fi
-DEBUG=yes who_orig="StianLangvann" channel="" cmd="$cmd" ./input.sh
+DEBUG=yes who_orig="StianLangvann" who="$who_orig" channel="" cmd="$cmd" ./input.sh
 

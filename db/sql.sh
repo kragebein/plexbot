@@ -24,8 +24,8 @@ case "$db" in
             echo "sqlite3 not installed. Install it first"
             exit
         fi
-        if ! sqlite3 "$dbfile" -line "$*" -column | sed s'/      //g'; then
-            echo "sqlite3 failed writing \"$*\" to $dbfile"
+        if ! sqlite3 "$dbfile" -line "$*" -column | sed s'/      //g'|sed s'/   //g'; then
+            echo "sqlite3 failed \"$*\" to $dbfile"
         fi
        log n "sqlite: $*" 
     }

@@ -63,4 +63,4 @@ pgsql_password=""
 pgsql_hostname=""
 pgsql_port=""
 #sqlite3
-sql3_file=""
+sql_file=""

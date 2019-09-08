@@ -32,7 +32,9 @@ if [[ "$cmd" =~ ^[.]request ]]; then
 	uac
 	load "$pb/core.sh"
 	cmd="${cmd//.request /}"
-	setflags;check_request_flags "$cmd";echo "$cmd";check_input;parse_imdb;parse_sofa
+	setflags;check_request_flags "$cmd";check_input;parse_imdb;parse_sofa
+	
+	
 fi
 if [[ "$cmd" =~ ^[.]search ]]; then
 	uac

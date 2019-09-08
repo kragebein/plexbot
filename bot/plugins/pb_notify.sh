@@ -8,31 +8,24 @@
 #   DESCRIPTION: Enables a notify function, when a user requests a movie/show
 # 				 the bot will notify them through private message as well as 
 #				 through the announce channel.
+# 				-----------------------------
+#				Warn: This plugin is used in line 53 in core.sh
 
-source $pb/../../master.sh
+
 _script="pb_notify.sh"
-#regex="^[.]notify.+$"
+regex="^[.]notify"
 cmd="${cmd//.notify /}"
+who="$who" cmd="${cmd#.calendar *}" channel="$channel"
 
+notify() {
+if [ -z "$cmd" ]; then
+say "$who :Må ha med argument førr å kun bruk den her..";exit
+fi
 if [[ "$cmd" =~ ^[0-9]{1,3}(.*)$ ]]; then
 	imdbid="$(cat /tmp/.sbuf |grep -w "$cmd" |awk -F ' ' '{print $2}')"
 else
     imdbid="$(echo "$cmd" | egrep -wo "tt[0-9]{1,19}")"
 fi
-
-case "$db" in
-    'mysql') 
-    count() { myq "plexbot SELECT count(*) FROM  notify WHERE imdbid='$imdbid' AND who='$who'" ;}
-    firsttime() { myq "plexbot SELECT count(*) FROM  notify WHERE who='$who'"; }
-    add() { myq "plexbot INSERT INTO notify VALUES('$orig_who', '$imdbid', '$rating_key');" ;}
-    delete() { myq "plexbot DELETE FROM notify WHERE imdbid='$imdbid' AND who='$who';" ;}
-    ;;
-    'sqlite3')
-    count() { sql3 "SELECT count(*) FROM  notify WHERE imdbid='$imdbid' AND who='$who'" ;}
-    firsttime() { sql3 "SELECT count(*) FROM  notify WHERE who='$who'" ;}
-    add() { sql3 "INSERT INTO notify VALUES('$orig_who', '$imdbid', '$rating_key')" ;}
-    delete() { sql3 "DELETE FROM notify WHERE imdbid='$imdbid' AND who='$who'" ;}
-esac
 
 rating_key="${RANDOM}"
 if [ "$imdbid" = "null" ]; then
@@ -40,7 +33,7 @@ if [ "$imdbid" = "null" ]; then
     log e "pb_notify, imdbid unset."
 fi
 
-count=$(myq "plexbot SELECT count(*) FROM  notify WHERE imdbid='$imdbid' AND who='$who'")
+count=$(sql "SELECT count(*) FROM  notify WHERE imdbid='$imdbid' AND who='$who_orig'")
 data=$(curl -s "http://www.omdbapi.com/?i=$imdbid&apikey=$omdb_key")
 make=$(echo "$data" |jq -r '.Type')
 if [ "$make" = "null" ]; then
@@ -53,8 +46,8 @@ fi
 title=$(echo "$data" |jq -r '.Title')
 
 first_time() {
-	if [ "$(myq "plexbot SELECT count(*) FROM  notify WHERE who='$who'")" = "0" ]; then 
-		say "$orig_who :Hei! Som en del av varslingsfunksjonen må du godta den her chatten først!"
+	if [ "$(sql "SELECT count(*) FROM  notify WHERE who='$who_orig'")" = "0" ]; then 
+		say "$who_orig :Hei! Som en del av varslingsfunksjonen må du godta den her chatten først!"
 	fi
 }
 
@@ -62,14 +55,14 @@ notify_add() {
 	if [ "$cmd" = "request" ]; then
 		if [ "$make" = "movie" ]; then
 			if [ "$(cat /tmp/.request.$imdbid)" = "$imdbid" ]; then
-				myq "plexbot INSERT INTO notify VALUES('$orig_who', '$imdbid', '$rating_key');"
+				sql "INSERT INTO notify VALUES('$who_orig', '$imdbid', '$rating_key');"
 				rm /tmp/.request.$imdbid
 				exit
 			fi
 		fi
 	else
 
-		myq "plexbot INSERT INTO notify VALUES('$orig_who', '$imdbid', '$rating_key');"
+		sql "INSERT INTO notify VALUES('$who_orig', '$imdbid', '$rating_key');"
 		if [ "$make" = "series" ]; then
 			say "$who :Du har aktivert varsler for $title, du vil bi varlsa når neste episode e kommet på Plex."
 		else
@@ -80,7 +73,7 @@ notify_add() {
 }
 
 notify_del() {
-	myq "plexbot DELETE FROM notify WHERE imdbid='$imdbid' AND who='$who';"
+	sql "DELETE FROM notify WHERE imdbid='$imdbid' AND who='$who';"
 	say "$RES :Du har deaktivert varsel for $title."
 }
 
@@ -90,4 +83,6 @@ if [ "$count" = "0" ]; then
 else
 	notify_del
 fi
+}
 
+notify "$@"

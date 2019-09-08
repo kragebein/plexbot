@@ -45,7 +45,7 @@ update_sqlite3() {
 							season="$(echo "$metadata" | jq -r '.response.data.parent_media_index')"
 							episode="$(echo "$metadata" | jq -r '.response.data.media_index')"
 							show="$(echo "$metadata" | jq -r '.response.data.grandparent_title' | sed "s/'//g")"
-							sql3 "INSERT INTO content (type, imdbid, grandparent_rating_key, rating_key, season, episode, filepath) VALUES ('show', '$imdbid', '$grandparent_rating_key', '$rating_key', '$season', '$episode', '$file')"
+							sql "INSERT INTO content (type, imdbid, grandparent_rating_key, rating_key, season, episode, filepath) VALUES ('show', '$imdbid', '$grandparent_rating_key', '$rating_key', '$season', '$episode', '$file')"
 							echo "$show (${season}x${episode}) [${rating_key}]"
 						fi
 						let e=e+1
@@ -76,7 +76,7 @@ update_sqlite3() {
 		file="$(echo "$metadata" | jq -r '.response.data.media_info[0].parts[0].file' | tr -d \')"
 		if [ "$imdb_rating" != "null" ]; then # Entries without ratings are remnants of old content in the library
 			file="$(echo "$metadata" | jq -r '.response.data.media_info[0].parts[0].file' | tr -d \' 2>/dev/null)"
-			sql3 "INSERT INTO content (type, imdbid, rating_key, filepath) VALUES ('movie', '$imdb', '$rating_key', '$file')"
+			sql "INSERT INTO content (type, imdbid, rating_key, filepath) VALUES ('movie', '$imdb', '$rating_key', '$file')"
 			echo "$show (${season}x${episode}) [${rating_key}]"
 		fi
 		let COUNTER=COUNTER+1

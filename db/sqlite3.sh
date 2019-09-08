@@ -16,7 +16,7 @@
 #       CREATED: 08/31/2019 08:59
 #      REVISION:  ---
 #===============================================================================
-sql3() {
+sql() {
 	_script="sql.log"
 	dbfile="${pb%/*}/db/sqlite3.sql"
 	if ! which sqlite3 >/dev/null; then
