@@ -157,13 +157,13 @@ _script="ttdb.log"
 	if [[ "$input" =~ ^.t.{0,9} ]]; then
 		json="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" "https://api.thetvdb.com/search/series?imdbId=$input")"
 		check "$json"
-		rating_key="$(echo -ne "$json" |tr -d '\n' |jq '.data[0].id')"
+		rating_key="$(echo -ne "$json" |jq '.data[0].id')"
 		export rating_key
 		echo "$rating_key"
 	else
 		json="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" "https://api.thetvdb.com/series/$input" )"
 		check "$json"
-		imdbid="$(echo -ne "$json" |tr -d '\n' |jq -r '.data.imdbId')"
+		imdbid="$(echo -ne "$json" |jq -r '.data.imdbId')"
 		export imdbid
 		echo "$imdbid"
 	fi
