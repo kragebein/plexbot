@@ -47,6 +47,9 @@ log() {
 			echo "[undef]: $message" >&2
 	esac
 }
+debug() {
+	echo "$*" >&2
+}
 load() { #note to self, log before load.
 	if ! source "$1" ; then
 		_script="functions_loader"

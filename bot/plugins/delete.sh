@@ -19,6 +19,7 @@ sqlwho="$(sql "SELECT who FROM deletewarn WHERE imdbid='$imdbid'")"
 ojson=$(curl -s "http://www.omdbapi.com/?i=$imdbid&apikey=$omdb_key&type=series")
 title="$(echo "$ojson" | jq -r '.Title')"
 type="$(echo "$ojson" | jq -r .Type)"
+ttdb "$imdbid" # this creates $rating_key
 case "$type" in
 'series')
 	if [ "$who_orig" = "$sqlwho" ]; then
@@ -29,15 +30,30 @@ case "$type" in
 			rm -rf "$filepath"
 			sql "DELETE from content WHERE imdbid='$imdbid'"
 		done
-		ttdb "$imdbid" # this creates $rating_key
 		curl -s "$sr_hostname/api/$sr_apikey/?cmd=show.delete&tvdbid=$rating_key"
-		say "$who :Title og dens ${#array[@]} episoda e fjerna fra Plex."
+		say "$who :$title og dens ${#array[@]} episoda e fjerna fra Plex."
 	else
 
-		for i in $(sql "SELECT filepath from content WHERE imdbid='tt2661044'"); do
+		for i in $(sql "SELECT filepath from content WHERE imdbid='$imdbid'"); do
 			array[$y]=$i
 			let y=y+1
+			debug "${array[$y]}"
 		done
+		if [ "$(echo ${#array[@]})" = "0" ]; then
+		# Show not found in local database, so files not present.. Lets check SR.
+		_check=$(curl -s "$sr_hostname/api/$sr_apikey/?cmd=show.cache&tvdbid=$rating_key")
+			case $(echo "$_check" |jq -r '.result') in
+				'success')
+				say "$who :Serien ligg i wishlist, men fant den ikke på Plex! Gjenta kommandoen om den ska slættes fra wishlist."
+				sleepdo &
+				exit
+				;;
+				'failure') 
+				say "$who :Den her serien e ikke på plex."
+				exit
+			esac
+		fi
+
 		say "$who :Det her bi å å slett ${#array[@]} episoda av \"$title\"."
 		say "$who :førr å faktisk slett, gjenta kommandoen innen 30 sekunda."
 		sql "INSERT INTO deletewarn VALUES('$who_orig','$imdbid')"

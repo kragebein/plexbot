@@ -136,7 +136,7 @@ check_request_flags(){
 				:
 			else
 				if [ "$wanted" = "active" ]; then
-					what="Ligger i ventelisten."
+					what="Ligg i ventelista."
 					what2="I kø"
 				elif [ "$library" = "done" ]; then
 					what="fins allerede i Plex"
@@ -163,7 +163,7 @@ check_request_flags(){
 		count=$(echo "$JSON" |jq '.Search' |grep "{" |wc -l)
 		COUNTER=0
 		if [ "$count" = "0" ]; then
-			say "$who :Ingen treff på \"$arg\""
+			say "$who :Fant ingenting på \"$arg\""
 		fi
 		while [ "$COUNTER" -lt "$count" ]; do
 			nope=0
@@ -206,8 +206,8 @@ check_request_flags(){
 		#echo "$imdbid"
 		#echo "$(curl -s "http://thetvdb.com/index.php?seriesname=&fieldlocation=4&language=7&genre=&year=&network=&zap2it_id=&tvcom_id=&imdb_id=$imdbid&order=translation&addedBy=&searching=Search&tab=advancedsearch")"
 		case $thetvdb_id in
-			'') say "$who :$imdb_title fins på imdb ($imdbid), men fins ikke en samsvarende id på thetvdb (null), kan derfor ikke legges til.";exit;;
-			' ')say "$who :$imdb_title fins på imdb ($imdbid), men fins ikke en samsvarende id på thetvdb (null), kan derfor ikke legges til.";exit;;
+			'') say "$who :$imdb_title finnes på imdb ($imdbid), men den her serien fins ikke på thetvdb enda og kan dæffør ikke lægges tell.";exit;;
+			' ')say "$who :$imdb_title finnes på imdb ($imdbid), men den her serien fins ikke på thetvdb enda og kan dæffør ikke lægges tell.";exit;;
 			*):;;
 		esac
 	}
@@ -270,8 +270,8 @@ check_request_flags(){
 				if [ ! "$who" = "$channel" ]; then	
 					say "$announce_channel :Serien \"$imdb_title\" ($imdbid) er blitt lagt til [lang:$core_lang]. Vil komme på plex fortløpende"
 				fi
-				say "$who :Serien \"$imdb_title\" ($imdbid) er blitt lagt til [lang:$core_lang]. Vil legges til asap.";;
-			'failure') say "$who :Serien \"$imdb_title\" ble ikke lagt til." echo "";echo "$execute_add";;
+				say "$who :Serien \"$imdb_title\" ($imdbid) vart lagt tell [lang:$core_lang]. Kommer på plex asap.";;
+			'failure') say "$who :Serien \"$imdb_title\" vart ikke lagt tell. Se feillogg." echo "";echo "$execute_add";;
 			*) say "$who :Feil; show_add, execute_add->error";echo "$execute_add";;
 		esac
 		exit
@@ -283,7 +283,7 @@ check_request_flags(){
 		count=$(echo "$JSON" |jq '.Search' |grep "{" |wc -l)
 		COUNTER=0
 		if [ "$count" = "0" ]; then
-			say "$who :Ingen treff på \"$argw\"";exit
+			say "$who :Fant ingenteng på \"$argw\"";exit
 		else
 			:
 		fi
@@ -317,14 +317,14 @@ check_request_flags(){
 	}
 	parse_imdb() {
 		xml="$(curl -s "http://www.omdbapi.com/?i=$imdbid&plot=short&r=json&apikey=$omdb_key")"
-		if [ "$(echo "$xml")" = "The service is unavailable." ]; then echo "Nødvendig tredjepartstjeneste midlertidlig utilgjengelig. Prøv igjen senere."; exit 0; fi
+		if [ "$(echo "$xml")" = "The service is unavailable." ]; then echo "IMDB-api ser ute tell å vær nede, kan ikke gjør nåkka uten det!"; exit 0; fi
 		respons="$(echo "$xml" |awk -F "Response\":" '{print $2}'|awk -F "\"" '{print $2}')"
-		if [ "$respons" = "True" ]; then :;else say "$who :Ingen film eller serie med denne IDen: $imdbid";exit 1;fi
+		if [ "$respons" = "True" ]; then :;else say "$who :Ingen film eller serie med den IDen: $imdbid";exit 1;fi
 		imdb_title=$(echo "$xml" |awk -F "Title\":" '{print $2}' |awk -F "\"" '{print $2}' 2>/dev/null)
 		couch_title=$(echo "$imdb_title" | sed 's/ /+/g')
 		typ="$(echo "$xml" |awk -F "\"Type\":" '{print $2}' |awk -F "\"" '{print $2}')"
 		if [ "$typ" = "series" ]; then show_initiate "$imdbid";exit;
-		elif [ "$typ" = "movie" ]; then :;else say "$who :$imdb_title er ikke en film eller serie. Kun filmer og serier kan legges i ønskelisten.";exit 0
+		elif [ "$typ" = "movie" ]; then :;else say "$who :$imdb_title e ikke en film eller serie.";exit 0
 		fi
 	}
 	check_exist() {
@@ -333,9 +333,9 @@ check_request_flags(){
 		check=$(echo "$exists" |awk -F '{\"status\": ' '{print $2}' |awk -F "\"" '{print $2}')
 		case $check in
 			'active')
-				say "$who :$imdb_title ($imdbid) ligger allerede i ventelisten, men filmen har enda ikke hatt første visning. Det blir ikke gjort forsøk på å legge den til før etter første visning.";exit 0;;
+				say "$who :$imdb_title ($imdbid) ligger allerede i ventelista, men filmen har ikke hadd første visning enda, det bi først gjort et forsøk på å lægg den tell etter første visning.";exit 0;;
 			'done')
-				say "$who :$imdb_title ($imdbid) er allerede tilgjengelig i biblioteket.";exit 0;;
+				say "$who :$imdb_title ($imdbid) e allerede på Plex.";exit 0;;
 			'false')
 				:;;
 		esac
@@ -361,9 +361,9 @@ check_request_flags(){
 				if [ "$cp_status" = "$imdbid" ]; then
 					say "$who :Filmen $imdb_title ($imdbid) ble funnet, henter ned.."
 				else
-					say "$who :Filmen $imdb_title ($imdbid) er lagt til ønskelisten."
+					say "$who :Filmen $imdb_title ($imdbid) er lagt i ønskelista."
 					if [ ! "$who" = "$channel" ]; then
-						say "$announce_channel :Filmen $imdb_title ($imdbid) er blitt lagt til ønskelisten."
+						say "$announce_channel :Filmen $imdb_title ($imdbid) e lagt i ønskelisten."
 					fi
 
 					rm "/tmp/cp_status_$imdbid" 2>/dev/null
