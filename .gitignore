@@ -1,3 +1,4 @@
 bot/config.cfg
 bot/config.bak
 data/extras.sh
+bot/install.sh
