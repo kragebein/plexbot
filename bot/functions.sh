@@ -4,7 +4,7 @@ source /drive/drive/.rtorrent/scripts/v3/bot/config.cfg
 #source "${pb%/*}/lang/$language.lang" #TODO
 
 _script="functions.sh"
-DTG=$(echo "[$(date +%d-%m-%y) $(date +%H:%M:%S)]")
+dtg="[$(date +%d-%m-%y) $(date +%H:%M:%S)]"
 log() {
 	# Log v3
 #	if ! [ -w "$log_path/$_script" ]; then
@@ -12,22 +12,22 @@ log() {
 #		echo "Check permissions or edit config.cfg"
 		#        exit 1
 #	fi
-	message=$(echo ${*##log $1} | awk -F "^$1 " '{print $2}')
+	message=$(echo "${*##log $1}" | awk -F "^$1 " '{print $2}')
 	case $1 in
 		'NOT'|'not'|'n')
-			echo "$DTG [notification]: $message" >> $log_path/${_script%%.*}.log
-			echo "$DTG [notification/${_script%%.*}]: $message" >> $log_path/plexbot.log
+			echo "$dtg [notification]: $message" >> "$log_path/${_script%%.*}.log"
+			echo "$dtg [notification/${_script%%.*}]: $message" >> "$log_path/plexbot.log"
 			echo "$message" >&2
 			;;
 		'WRN'|'wrn'|'w')
-			echo "$DTG [warning]: $message" >> $log_path/${_script%%.*}.log
-			echo "$DTG [warning/${_script%%.*}]: $message" >> $log_path/plexbot.log
+			echo "$dtg [warning]: $message" >> "$log_path/${_script%%.*}.log"
+			echo "$dtg [warning/${_script%%.*}]: $message" >> "$log_path/plexbot.log"
 			echo "[warning] $message" >&2
 			#syslog "[$0 - warning] - $message"
 			;;
 		'err'|'ERR'|'e')
-			echo "$DTG [error]: $message" >> $log_path/${_script%%.*}.log
-			echo "$DTG [error/${_script%%.*}]: $message" >> $log_path/plexbot.log
+			echo "$dtg [error]: $message" >> "$log_path/${_script%%.*}.log"
+			echo "$dtg [error/${_script%%.*}]: $message" >> "$log_path/plexbot.log"
 			echo "[ERROR] $message" >&2
 			#                       syslog "[$0 - error] $message"
 			echo "Unrecoverable, exiting." >&2
@@ -35,15 +35,15 @@ log() {
 			exit 1
 			;;
 		'say'|'SAY'|'s')
-			echo "$DTG [saying]: $message" >> $log_path/${_script%%.*}.log
-			echo "$DTG [saying/${_script%%.*}]: $message" >> $log_path/plexbot.log
+			echo "$dtg [saying]: $message" >> "$log_path/${_script%%.*}.log"
+			echo "$dtg [saying/${_script%%.*}]: $message" >> "$log_path/plexbot.log"
 			echo "[saying] $message" >&2
 			#                       syslog "[$0 - warning] $message"
 			say "#log :$message"
 			;;
 		*)      message="$*"
-			echo "$DTG [undef]: $message" >> $log_path/${_script%%.*}.log
-			echo "$DTG [undef/${_script%%.*}]: $message" >> $log_path/plexbot.log
+			echo "$dtg [undef]: $message" >> "$log_path/${_script%%.*}.log"
+			echo "$dtg [undef/${_script%%.*}]: $message" >> "$log_path/plexbot.log"
 			echo "[undef]: $message" >&2
 	esac
 }
@@ -72,24 +72,23 @@ req_admin() {
 
 reload_plugins() {
 	p=0
-	echo "declare -A plug" > $pb/plugins/.loaded
-	echo "plug=(" >> $pb/plugins/.loaded
+	echo "declare -A plug" > "$pb/plugins/.loaded"
+	echo "plug=(" >> "$pb/plugins/.loaded"
 	for i in $pb/plugins/*.sh; do
-		lol="$(egrep "^regex=" $i)"
+		lol="$(egrep "^regex=" "$i")"
 		if [ ! -z "$lol" ]; then
 			lol="${lol//\"/}"
 			lol="${lol//regex=/}"
-			echo "[$i]=\"$lol\"" >> $pb/plugins/.loaded
+			echo "[$i]=\"$lol\"" >> "$pb/plugins/.loaded"
 			let p=p+1
 		fi
 	done
-	echo ")" >> $pb/plugins/.loaded
-	chmod +x $pb/plugins/.loaded
-	say "$who :Configuration reloaded, $p plugins loaded"
+	echo ")" >> "$pb/plugins/.loaded"
+	chmod +x "$pb/plugins/.loaded"
+	say "$who :Konfigurasjon lasta om, $p plugins e klar."
 }
 
 html_ascii () {
-	out="$content"  
 	out="$*"
 	out="${out//%/%25}"
 	out="${out//\&/%26}"
@@ -115,16 +114,18 @@ html_ascii () {
 	out="${out//\}/%7D}"
 	echo "$out"
 }
-lastadd="/tmp/.lastadd"
-lastadd() {
-	echo "$imdbid" > $lastadd
+read.last() {
+	cat /tmp/.lastadd
+}
+put.last() {
+	echo "$imdbid" > /tmp/.lastadd
 }
 
 ttdb() { # if you input imdbid it will create $rating_key, if you input rating_key it will create $imdbid
 _script="ttdb.log"
 	rewrite() {
 		buffer=$(mktemp)
-		cat "$pb/config.cfg" | sed "s/ttdb_token=\"$ttdb_token\"/ttdb_token=\"$key\"/g" > "$buffer"
+		sed "s/ttdb_token=\"$ttdb_token\"/ttdb_token=\"$key\"/g" "$pb/config.cfg" > "$buffer"
 		mv -f "$buffer" "$pb/config.cfg";chmod +x "$pb/config.cfg"
 		log n "rewrote token to config"
 	}

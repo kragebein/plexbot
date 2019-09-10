@@ -23,9 +23,9 @@ setflags() {
 	#anime="$()
 }
 accepted_lang(){
-	var="$(cat "$config_path/../lang/cc.csv" | awk -F ',' '{print $2}' |grep -w "${language^^}")"
+	var="$(grep -w "${language^^}" "$pb/../lang/cc.csv" | awk -F ',' '{print $2}')"
 	if [ "$var" = "${language^^}" ]; then
-		linglang="$(cat "$config_path/../cc.csv" |grep -W "${language^^}" | awk -F ',' '{print $1}')"
+		linglang="$(grep -W "${language^^}" "$pb/../cc.csv" | awk -F ',' '{print $1}')"
 		return 0
 	else
 		return 1
@@ -45,8 +45,10 @@ check_request_flags(){
 	}
 	check_input(){
 		if [[ "$cmd" =~ ^[0-9]{1,3}(.*)$ ]]; then
-			imdbid="$(cat /tmp/.sbuf |grep -w "$cmd" |awk -F ' ' '{print $2}')";
-			lastadd
+			imdbid="$(grep -w "$cmd" /tmp/.sbuf |awk -F ' ' '{print $2}')";
+			put.last
+			else
+			put.last
 		fi
 	}
 	missing_episode() {
@@ -115,7 +117,7 @@ check_request_flags(){
 		MULTICOUNT="0"
 		JSON="$(curl -s "$cp_hostname/api/$cp_apikey/search?q=$argw")"
 		echo "$JSON" >/drive/drive/.rtorrent/logs/json.log 2>/dev/null
-		hits="$(echo "$JSON" |grep -o "original_title" |wc -l)"
+		hits="$(echo "$JSON" |grep -o "original_title" -c)"
 		say "$who :Filmer"
 		say "$who :-------------"
 		if [ "$hits" = "0" ]; then say "$who :Ingen treff på $arg";else :;fi
@@ -160,7 +162,7 @@ check_request_flags(){
 		say "$who :-------------"
 		input="$(echo -ne "$arg" | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')"
 		JSON=$(curl -s "http://www.omdbapi.com/?s=$input&apikey=$omdb_key&type=series")
-		count=$(echo "$JSON" |jq '.Search' |grep "{" |wc -l)
+		count=$(echo "$JSON" |jq '.Search' |grep "{" -c)
 		COUNTER=0
 		if [ "$count" = "0" ]; then
 			say "$who :Fant ingenting på \"$arg\""
@@ -280,7 +282,7 @@ check_request_flags(){
 		argw="$(echo "$*" |awk -F ".tvsearch " '{print $2}')"
 		input="$(echo -ne "$argw" | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')"
 		JSON=$(curl -s "http://www.omdbapi.com/?s=$input&apikey=$omdb_key&type=series")
-		count=$(echo "$JSON" |jq '.Search' |grep "{" |wc -l)
+		count=$(echo "$JSON" |jq '.Search' |grep "{" -c)
 		COUNTER=0
 		if [ "$count" = "0" ]; then
 			say "$who :Fant ingenteng på \"$argw\"";exit
@@ -321,7 +323,7 @@ check_request_flags(){
 		respons="$(echo "$xml" |awk -F "Response\":" '{print $2}'|awk -F "\"" '{print $2}')"
 		if [ "$respons" = "True" ]; then :;else say "$who :Ingen film eller serie med den IDen: $imdbid";exit 1;fi
 		imdb_title=$(echo "$xml" |awk -F "Title\":" '{print $2}' |awk -F "\"" '{print $2}' 2>/dev/null)
-		couch_title=$(echo "$imdb_title" | sed 's/ /+/g')
+		couch_title="$(html_ascii "$imdb_title")" # Lets make it searchable through urls 
 		typ="$(echo "$xml" |awk -F "\"Type\":" '{print $2}' |awk -F "\"" '{print $2}')"
 		if [ "$typ" = "series" ]; then show_initiate "$imdbid";exit;
 		elif [ "$typ" = "movie" ]; then :;else say "$who :$imdb_title e ikke en film eller serie.";exit 0
@@ -400,7 +402,7 @@ check_request_flags(){
 	imdb() {
 		id_key="${cmd//.imdbd/}"
 		if [ "$id_key" = "" ]; then
-			id_key="$(cat /tmp/.lastadd)"
+			id_key="$(read.last)"
 		fi
 		data="$(curl -s "http://www.omdbapi.com/?i=$id_key&apikey=$omdb_key&plot=full")"
 		if [ "$2" = "-r" ]; then

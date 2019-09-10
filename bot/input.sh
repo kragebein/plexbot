@@ -57,4 +57,3 @@ if [[ "$cmd" =~ ^help ]]; then
 		IFS=$'\n'; for i in $(cat "$pb/../help/admin.text"); do say "$who :$i";done
 	fi
 fi
-
