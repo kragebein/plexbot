@@ -20,6 +20,7 @@ ojson=$(curl -s "http://www.omdbapi.com/?i=$imdbid&apikey=$omdb_key&type=series"
 title="$(echo "$ojson" | jq -r '.Title')"
 type="$(echo "$ojson" | jq -r .Type)"
 ttdb "$imdbid" # this creates $rating_key
+
 case "$type" in
 'series')
 	if [ "$who_orig" = "$sqlwho" ]; then

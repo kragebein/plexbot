@@ -13,9 +13,10 @@ rm /tmp/$input.response # removes the temp file
 case $request_response in
 	# notfound, added, alreadyadded, errortryagain,ttdbnull
 	'added')
-	say "$who :Thx, la den tel";;
+	say "$who :Thx, la den tel"
+	put.last;;
 'alreadyadded')
-	say "$who :Allerede i Plex." ;; 
+	say "$who :Allerede i Plex.";put.last ;; 
 'notfound')
 	: ;;
 'errortryagain')

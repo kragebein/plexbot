@@ -8,7 +8,7 @@ regex="^[.]imdb"
 input="${cmd#*.imdb }"
 id_key="$input"
 if [ "$id_key" = ".imdb" ]; then
-	id_key="$(cat $imdbidfile)"
+	id_key="$(read.last)"
 fi
 data="$(curl -s "http://www.omdbapi.com/?i=$id_key&apikey=$omdb_key&plot=full")"
 # general data

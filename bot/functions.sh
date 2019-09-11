@@ -7,11 +7,11 @@ _script="functions.sh"
 dtg="[$(date +%d-%m-%y) $(date +%H:%M:%S)]"
 log() {
 	# Log v3
-#	if ! [ -w "$log_path/$_script" ]; then
-#		echo "ERROR, incorrect permissions in log_path ($log_path/$_script), cannot write to it!!"
-#		echo "Check permissions or edit config.cfg"
-		#        exit 1
-#	fi
+	#	if ! [ -w "$log_path/$_script" ]; then
+	#		echo "ERROR, incorrect permissions in log_path ($log_path/$_script), cannot write to it!!"
+	#		echo "Check permissions or edit config.cfg"
+	#        exit 1
+	#	fi
 	message=$(echo "${*##log $1}" | awk -F "^$1 " '{print $2}')
 	case $1 in
 		'NOT'|'not'|'n')
@@ -115,14 +115,14 @@ html_ascii () {
 	echo "$out"
 }
 read.last() {
-	cat /tmp/.lastadd
+cat /tmp/.lastadd
 }
 put.last() {
-	echo "$imdbid" > /tmp/.lastadd
+echo "$imdbid" > /tmp/.lastadd
 }
 
 ttdb() { # if you input imdbid it will create $rating_key, if you input rating_key it will create $imdbid
-_script="ttdb.log"
+	_script="ttdb.log"
 	rewrite() {
 		buffer=$(mktemp)
 		sed "s/ttdb_token=\"$ttdb_token\"/ttdb_token=\"$key\"/g" "$pb/config.cfg" > "$buffer"
@@ -138,10 +138,9 @@ _script="ttdb.log"
 			fi
 		fi
 		rewrite "$key"
+		ttdb_token="$key"
 	}
 	check() { #Sometimes the plot will come with escape characters and errors. So we remove and check.
-		json="${json//\n/}"
-		json="${json//\r/}"
 		_test="$(echo "$json" |jq -r '.Error')"
 		if [ "$_test" != "null" ]; then
 			case $_test in
@@ -159,13 +158,13 @@ _script="ttdb.log"
 	}
 	input="$1"
 	if [[ "$input" =~ ^.t.{0,9} ]]; then
-		json="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" "https://api.thetvdb.com/search/series?imdbId=$input")"
+		json="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" "https://api.thetvdb.com/search/series?imdbId=$input" |tr -d '\n')"
 		check "$json"
 		rating_key="$(echo -ne "$json" |jq '.data[0].id')"
 		export rating_key
 		echo "$rating_key"
 	else
-		json="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" "https://api.thetvdb.com/series/$input" )"
+		json="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" "https://api.thetvdb.com/series/$input" |tr -d '\n')"
 		check "$json"
 		imdbid="$(echo -ne "$json" |jq -r '.data.imdbId')"
 		export imdbid

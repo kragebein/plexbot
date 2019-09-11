@@ -74,7 +74,7 @@ for i in {0..1000} ; do
 			fi
 
 			content="${content^^}"
-			content="$(content="$content" html_ascii)"
+			content="$(html_ascii "$content")"
 			for i in $(echo ${!bad_data[@]}); do
 				content="${content//${bad_data[$i]}/}" # need to process name.
 				#echo "$content < ${bad_data[$i]}"

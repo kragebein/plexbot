@@ -22,6 +22,7 @@ else
 		say "$who :$title e en film. Du kan kun bruk missing på seria.";exit
 	fi
 fi
+put.last
 # so this seems to be a show/series, in this case we need to make sure the proper arguments are with us
 if [ "$season" = "$imdbid" ]; then
 	say "$who :Du må ha med sesong og episode som argument. f.eks: tt123456 2 4! $title sesong 2 episode 4"

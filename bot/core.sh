@@ -47,7 +47,7 @@ check_request_flags(){
 		if [[ "$cmd" =~ ^[0-9]{1,3}(.*)$ ]]; then
 			imdbid="$(grep -w "$cmd" /tmp/.sbuf |awk -F ' ' '{print $2}')";
 			put.last
-			else
+		else
 			put.last
 		fi
 	}
@@ -213,8 +213,8 @@ check_request_flags(){
 			*):;;
 		esac
 	}
-	show_check_exist_fail() { 
-		sanity=$(curl -s "$sr_hostname/api/$sr_apikey/?cmd=show.cache&tvdbid=$thetvdb_id")
+	show_check_exist_fail() {
+		sanity=$(curl -s "$sr_hostname/api/$sr_apikey/?cmd=show.cache&tvdbid=$(ttdb $imdbid)")
 		check=$(echo "$sanity" |jq -r '.result')
 		case $check in
 			'failure') :;;
