@@ -214,7 +214,7 @@ check_request_flags(){
 		esac
 	}
 	show_check_exist_fail() {
-		sanity=$(curl -s "$sr_hostname/api/$sr_apikey/?cmd=show.cache&tvdbid=$(ttdb $imdbid)")
+		sanity=$(curl -s "$sr_hostname/api/$sr_apikey/?cmd=show.cache&tvdbid=$(ttdb "$imdbid")")
 		check=$(echo "$sanity" |jq -r '.result')
 		case $check in
 			'failure') :;;

@@ -140,7 +140,9 @@ ttdb() { # if you input imdbid it will create $rating_key, if you input rating_k
 		rewrite "$key"
 		ttdb_token="$key"
 	}
-	check() { #Sometimes the plot will come with escape characters and errors. So we remove and check.
+	check() { 
+	json="${json//\\n/}"
+	json="${json//\\r/}"
 		_test="$(echo "$json" |jq -r '.Error')"
 		if [ "$_test" != "null" ]; then
 			case $_test in
@@ -158,13 +160,13 @@ ttdb() { # if you input imdbid it will create $rating_key, if you input rating_k
 	}
 	input="$1"
 	if [[ "$input" =~ ^.t.{0,9} ]]; then
-		json="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" "https://api.thetvdb.com/search/series?imdbId=$input" |tr -d '\n')"
+		json="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" "https://api.thetvdb.com/search/series?imdbId=$input")"
 		check "$json"
 		rating_key="$(echo -ne "$json" |jq '.data[0].id')"
 		export rating_key
 		echo "$rating_key"
 	else
-		json="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" "https://api.thetvdb.com/series/$input" |tr -d '\n')"
+		json="$(curl -s -X GET --header 'Accept: application/json' --header "Authorization: Bearer $ttdb_token" "https://api.thetvdb.com/series/$input")"
 		check "$json"
 		imdbid="$(echo -ne "$json" |jq -r '.data.imdbId')"
 		export imdbid
