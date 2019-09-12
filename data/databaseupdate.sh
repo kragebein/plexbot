@@ -11,6 +11,17 @@ if [ "$(loginctl show-session "$(</proc/self/sessionid)" | sed -n '/^Service=/s/
 	read jesusknowsyoursecrets
 fi
 
+check_show_wishlist() {
+	# this function will check if the the series wishlist has become available on thetvdb. 
+	for i in $(sql "SELECT imdbid from s_wishlist;"); do
+	rating_key="$(ttdb "$i")"
+	if [ "$rating_key" != "" ]; then
+	:
+	
+	fi
+	done
+}
+
 update_sqlite3() {
 	exit
 	bot_active="no" # This disables user input.
