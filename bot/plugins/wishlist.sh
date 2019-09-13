@@ -1,29 +1,15 @@
 #!/bin/bash - 
 #===============================================================================
-#
-#          FILE: wishlist.sh
-# 
-#         USAGE: ./wishlist.sh 
-# 
-#   DESCRIPTION: 
-# 
-#       OPTIONS: ---
-#  REQUIREMENTS: ---
-#          BUGS: ---
-#         NOTES: ---
-#        AUTHOR: YOUR NAME (), 
-#  ORGANIZATION: 
-#       CREATED: 08/25/2019 09:41
-#      REVISION:  ---
-#===============================================================================
+
 source /drive/drive/.rtorrent/scripts/v3/bot/functions.sh
 _script="wishlist"
 if [ "$channel" != "" ]; then who="$channel";fi # kommer requesten fra en kanal, gje svar i kanalen.
-regex="^[.]wishlist"
+regex="^[.]w"
 #
-input="${cmd#*.wishlist}"
-
-json=$(curl -s $cp_hostname/api/$cp_apikey/media.list/?status=active)
+input="${cmd#*.w }"
+case $input in 
+'movies')
+json=$(curl -s "$cp_hostname/api/$cp_apikey/media.list/?status=active")
 TOT=$(echo "$json" |jq -r '.total')
 CNT=0
 buffer="$(mktemp)"
@@ -38,14 +24,35 @@ while [ "$CNT" -lt "$TOT" ]; do
 		if [ "$rating" = "0" ]; then rating="0.0"; fi
 		year=$(echo "$json" |jq -r ".movies[$i].info.year")
 		if [ "$rating" = "null" ]; then year="in";rating="development";fi
-		echo "$imdb - $title ($year) [$rating]" >> $buffer
+		echo "$imdb - $title ($year) [$rating]" >> "$buffer"
 	done
 	let CNT=CNT+1
 done
 while read line;do
 	say "$who :$line"
-done < $buffer
-rm $buffer
-say "$who :Totalt $CNT filmer i listen"
+done < "$buffer"
+rm "$buffer"
+say "$who :Totalt $CNT filma i lista" ;;
 
+'series')
+k=0
+	for i in $(sql "SELECT imdbid FROM s_wishlist"); do
+		data="$(curl -s "http://www.omdbapi.com/?i=$i&apikey=$omdb_key&plot=full")"
+		title="$(echo "$data" | jq -r '.Title')"
+		year="$(echo "$data" | jq -r '.Year')"
+		rating="$(echo "$data" | jq -r '.Ratings[0].Value')"
+		if [ "$title"  != "null" ]; then
+		say "$who :$i - $title ($year) [$rating]"
+		let k=k+1
+		fi
+	done 
+		if [ "$k" = 0 ]; then
+		say "$who :Ingen seria i ønskelista" 
+		elif [ "$k" != 0 ]; then
+		say "$who :Totalt $k seria i lista."
+		fi
+;; 
+*)
+	say "$who : bruk .w (series|movies)"
+esac
 

@@ -24,7 +24,7 @@ for i in "${!plug[@]}"; do
 	fi
 done
 # CORE FUNCTIONS - These will only load the core when triggered. 
-if [[ "$cmd" =~ ^reloadconfig ]]; then
+if [[ "$cmd" =~ ^[.]reloadconfig^ ]]; then
 	req_admin
 	reload_plugins
 fi
@@ -42,14 +42,14 @@ if [[ "$cmd" =~ ^[.]search ]]; then
 	imdb_look "${cmd//.search /}"
 fi
 
-if [[ "$cmd" =~ ^showplugins ]]; then
+if [[ "$cmd" =~ ^[.]showplugins^ ]]; then
 	uac
 	say "$who :Loaded plugins and their triggers"
 	for i in "${!plug[@]}"; do 
 		say "$who : ${i##*/} =~ ${plug[$i]}"
 	done
 fi
-if [[ "$cmd" =~ ^help ]]; then    
+if [[ "$cmd" =~ ^[.]help^ ]]; then    
 	uac
 	IFS=$'\n'; for i in $(cat "$pb/../help/users.text"); do say "$who : $i";done
 	DEBUG=yes req_admin 

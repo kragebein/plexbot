@@ -203,14 +203,17 @@ check_request_flags(){
 		#Finn ut av ønsket kvalitet, språk og status. 
 		:
 	}
+	
+		# this function will add the show that is not yet available on thetvdb in the show wishlist. 
+		sql "INSERT into s_wishlist VALUES('$who', '$imdbid', '$dtg');"
+	
 	show_get_id() {
 		thetvdb_id="$(ttdb "$imdbid")"
-		#echo "$imdbid"
-		#echo "$(curl -s "http://thetvdb.com/index.php?seriesname=&fieldlocation=4&language=7&genre=&year=&network=&zap2it_id=&tvcom_id=&imdb_id=$imdbid&order=translation&addedBy=&searching=Search&tab=advancedsearch")"
 		case $thetvdb_id in
-			'') say "$who :$imdb_title finnes på imdb ($imdbid), men den her serien fins ikke på thetvdb enda og kan dæffør ikke lægges tell.";exit;;
-			' ')say "$who :$imdb_title finnes på imdb ($imdbid), men den her serien fins ikke på thetvdb enda og kan dæffør ikke lægges tell.";exit;;
-			*):;;
+			' ')
+			say "$who :$imdb_title finnes på imdbd, men serien e ikke tilgjenglig på thetvdb enda. Har lagt serien i ønskelista."
+			sql "INSERT into s_wishlist VALUES('$who', '$imdbid', '$dtg');"
+			exit
 		esac
 	}
 	show_check_exist_fail() {

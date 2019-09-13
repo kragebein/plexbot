@@ -3,22 +3,28 @@
 _script="databaseupdate.sh"
 source /drive/drive/.rtorrent/scripts/v3/bot/functions.sh
 
-if [ "$(loginctl show-session "$(</proc/self/sessionid)" | sed -n '/^Service=/s/.*=//p')" != "crond" ]; then
-	echo "This is meant to be run by cron. This will likely take some time."
-	echo "It will also DELETE your content database before rebuilding it."
-	echo "It will also disable the bot while running."
-	echo -n "Use CTRL-C to escape or ENTER to continue..."
-	read jesusknowsyoursecrets
-fi
+#if [ "$(loginctl show-session "$(</proc/self/sessionid)" | sed -n '/^Service=/s/.*=//p')" != "crond" ]; then
+#	echo "This is meant to be run by cron. This will likely take some time."
+#	echo "It will also DELETE your content database before rebuilding it."
+#	echo "It will also disable the bot while running."
+#	echo -n "Use CTRL-C to escape or ENTER to continue..."
+#	read jesusknowsyoursecrets
+#fi
 
 check_show_wishlist() {
-	# this function will check if the the series wishlist has become available on thetvdb. 
+	#this function will check if the the series wishlist has become available on thetvdb.
 	for i in $(sql "SELECT imdbid from s_wishlist;"); do
-	rating_key="$(ttdb "$i")"
-	if [ "$rating_key" != "" ]; then
-	:
-	
-	fi
+		rating_key="$(ttdb "$i")"
+		if [ "$rating_key" != " " ]; then
+			echo "$i is still not available"
+		else
+			echo "$i has become available! -> ${rating_key}"
+			who="$(sql SELECT who FROM s_wishlist WHERE imdbid = '$i');"
+			channel="$who"
+			cmd=".request $imdbid"
+			load bot/core.sh
+			request
+		fi
 	done
 }
 
@@ -97,18 +103,20 @@ update_sqlite3() {
 	bot_active="yes"
 }
 
-case "$db" in
-'sqlite3')
-	update_sqlite3
-	;;
-'mysql')
-	update_mysql
-	;;
-'oracle')
-	update_oracle
-	;;
-*)
-	echo "$db is not a supported database. Please check your config"
-	exit
-	;;
-esac
+databaseupdate() {
+	case "$db" in
+	'sqlite3')
+		update_sqlite3
+		;;
+	'mysql')
+		update_mysql
+		;;
+	'oracle')
+		update_oracle
+		;;
+	*)
+		echo "$db is not a supported database. Please check your config"
+		exit
+		;;
+	esac
+}
