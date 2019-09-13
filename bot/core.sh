@@ -203,10 +203,7 @@ check_request_flags(){
 		#Finn ut av ønsket kvalitet, språk og status. 
 		:
 	}
-	
-		# this function will add the show that is not yet available on thetvdb in the show wishlist. 
-		sql "INSERT into s_wishlist VALUES('$who', '$imdbid', '$dtg');"
-	
+			
 	show_get_id() {
 		thetvdb_id="$(ttdb "$imdbid")"
 		case $thetvdb_id in
@@ -377,30 +374,6 @@ check_request_flags(){
 			*)
 				:
 		esac
-	}
-	wishlist(){
-		json=$(curl -s "$cp_hostname/api/$cp_apikey/media.list/?status=active")
-		TOT=$(echo "$json" |jq -r '.total')
-		CNT=0
-		buffer="$(mktemp)"
-		say "$who :Vennligst vent, kompilerer.."
-		while [ "$CNT" -lt "$TOT" ]; do
-			for i in $(echo "$CNT"); do
-				title=$(echo "$json" |jq -r ".movies[$i].info.original_title")
-				imdb=$(echo "$json" | jq -r ".movies[$i].identifiers.imdb")
-				rating=$(echo "$json" |jq -r ".movies[$i].info.rating.imdb[0]")
-				if [ "$rating" = "0" ]; then rating="0.0"; fi
-				year=$(echo "$json" |jq -r ".movies[$i].info.year")
-				if [ "$rating" = "null" ]; then year="in";rating="development";fi
-				echo "$imdb - $title ($year) [$rating]" >> "$buffer"
-			done
-			let CNT=CNT+1
-		done
-		while read line;do
-			say "$who :$line"
-		done < "$buffer"
-		rm "$buffer"
-		say "$who :Totalt $CNT filmer i listen"
 	}
 	imdb() {
 		id_key="${cmd//.imdbd/}"
