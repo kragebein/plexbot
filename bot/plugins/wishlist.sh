@@ -8,7 +8,7 @@ regex="^[.]w"
 #
 input="${cmd#*.w }"
 case $input in 
-'movies')
+'f'|'F')
 json=$(curl -s "$cp_hostname/api/$cp_apikey/media.list/?status=active")
 TOT=$(echo "$json" |jq -r '.total')
 CNT=0
@@ -34,7 +34,7 @@ done < "$buffer"
 rm "$buffer"
 say "$who :Totalt $CNT filma i lista" ;;
 
-'series')
+'s'|'F')
 k=0
 	for i in $(sql "SELECT imdbid FROM s_wishlist"); do
 		data="$(curl -s "http://www.omdbapi.com/?i=$i&apikey=$omdb_key&plot=full")"
